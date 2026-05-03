@@ -1,0 +1,29 @@
+name: callcenter_salon_mobil
+description: CorpLynk salon online randevu — CallCenter.Api ile konuşur.
+publish_to: "none"
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  dio: ^5.8.0
+  flutter_secure_storage: ^9.2.4
+  provider: ^6.1.5
+  intl: ^0.20.2
+  webview_flutter: ^4.10.0
+  flutter_map: ^8.3.0
+  latlong2: ^0.9.1
+  geolocator: ^14.0.2
+  permission_handler: ^12.0.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
