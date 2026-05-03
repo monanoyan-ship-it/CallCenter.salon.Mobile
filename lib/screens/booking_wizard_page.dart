@@ -42,8 +42,8 @@ class _BookingWizardPageState extends State<BookingWizardPage> {
   StaffMember? _staffPick;
   int? _personnelId;
   TimeSlot? _slot;
-  int? _autoStaffId;
-  String? _autoStaffName;
+  int? _slotStaffId;
+  String? _slotStaffName;
 
   final _fullName = TextEditingController();
   final _phone = TextEditingController();
@@ -124,8 +124,8 @@ class _BookingWizardPageState extends State<BookingWizardPage> {
       _personnelId = null;
       _staffPick = null;
       _slot = null;
-      _autoStaffId = null;
-      _autoStaffName = null;
+      _slotStaffId = null;
+      _slotStaffName = null;
     });
     try {
       final list = await context
@@ -150,8 +150,8 @@ class _BookingWizardPageState extends State<BookingWizardPage> {
     setState(() {
       _slotsLoaded = false;
       _slot = null;
-      _autoStaffId = null;
-      _autoStaffName = null;
+      _slotStaffId = null;
+      _slotStaffName = null;
       _dayClosed = false;
     });
     try {
@@ -182,7 +182,9 @@ class _BookingWizardPageState extends State<BookingWizardPage> {
       case 1:
         return true;
       case 2:
-        return _slot != null && !_dayClosed;
+        return _slot != null &&
+            !_dayClosed &&
+            (_personnelId != null || _slotStaffId != null);
       case 3:
         return _fullName.text.trim().isNotEmpty &&
             _phone.text.trim().isNotEmpty;
@@ -219,7 +221,7 @@ class _BookingWizardPageState extends State<BookingWizardPage> {
     setState(() => _saving = true);
 
     int? personnel = _personnelId;
-    if (personnel == null && _autoStaffId != null) personnel = _autoStaffId;
+    if (personnel == null && _slotStaffId != null) personnel = _slotStaffId;
 
     final body = <String, dynamic>{
       'fullName': _fullName.text.trim(),
@@ -325,10 +327,55 @@ class _BookingWizardPageState extends State<BookingWizardPage> {
 
   String _confirmedStaffLabel() {
     if (_personnelId != null) return _staffPick?.name ?? '';
-    if (_autoStaffName != null && _autoStaffName!.isNotEmpty) {
-      return '$_autoStaffName (otomatik)';
+    if (_slotStaffName != null && _slotStaffName!.isNotEmpty) {
+      return _slotStaffName!;
     }
-    return 'Fark etmez';
+    return 'Personel secilmedi';
+  }
+
+  String _staffSymbol(SlotStaffMini staff) {
+    final trimmed = staff.name.trim();
+    if (trimmed.isNotEmpty) {
+      return String.fromCharCode(trimmed.runes.first).toUpperCase();
+    }
+    final fallback = staff.initials?.trim();
+    if (fallback != null && fallback.isNotEmpty) {
+      return String.fromCharCode(fallback.runes.first).toUpperCase();
+    }
+    return '?';
+  }
+
+  void _selectFlexibleStaff() {
+    setState(() {
+      _personnelId = null;
+      _staffPick = null;
+      _slot = null;
+      _slotStaffId = null;
+      _slotStaffName = null;
+    });
+  }
+
+  void _selectStaff(StaffMember staff) {
+    setState(() {
+      _personnelId = staff.id;
+      _staffPick = staff;
+      _slot = null;
+      _slotStaffId = null;
+      _slotStaffName = null;
+    });
+  }
+
+  void _selectSlot(TimeSlot slot, {SlotStaffMini? staff}) {
+    setState(() {
+      _slot = slot;
+      if (_personnelId == null) {
+        _slotStaffId = staff?.id;
+        _slotStaffName = staff?.name;
+      } else {
+        _slotStaffId = null;
+        _slotStaffName = null;
+      }
+    });
   }
 
   Future<void> _waitlistDialog() async {
@@ -569,8 +616,8 @@ class _BookingWizardPageState extends State<BookingWizardPage> {
                         _slots = [];
                         _slotsLoaded = false;
                         _slot = null;
-                        _autoStaffId = null;
-                        _autoStaffName = null;
+                        _slotStaffId = null;
+                        _slotStaffName = null;
                       }),
                     ),
                   ),
@@ -599,11 +646,8 @@ class _BookingWizardPageState extends State<BookingWizardPage> {
               child: ListTile(
                 leading: const Icon(Icons.shuffle),
                 title: const Text('Fark etmez'),
-                subtitle: const Text('Uygun personel atanir'),
-                onTap: () => setState(() {
-                  _personnelId = null;
-                  _staffPick = null;
-                }),
+                subtitle: const Text('Saat ekraninda musait personeli secin'),
+                onTap: _selectFlexibleStaff,
               ),
             ),
             for (final st in _staff)
@@ -628,10 +672,7 @@ class _BookingWizardPageState extends State<BookingWizardPage> {
                   ),
                   title: Text(st.name),
                   subtitle: Text(st.title ?? st.specialty ?? ''),
-                  onTap: () => setState(() {
-                    _personnelId = st.id;
-                    _staffPick = st;
-                  }),
+                  onTap: () => _selectStaff(st),
                 ),
               ),
             if (_staff.isEmpty)
@@ -706,104 +747,112 @@ class _BookingWizardPageState extends State<BookingWizardPage> {
                 Padding(
                   padding: const EdgeInsets.only(bottom: 8),
                   child: Text(
-                    'Saatlerde musait personeller gosterilir; secimde ilk uygun atanir.',
+                    'Ayni saatte birden fazla personel musaitse saat ayri ayri gorunur; harf personeli belirtir.',
                     style: TextStyle(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                         fontSize: 13),
                   ),
                 ),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  for (final sl in _slots)
-                    Builder(
-                      builder: (ctx) {
-                        final scheme = Theme.of(ctx).colorScheme;
-                        final sel = _slot?.startTime == sl.startTime;
-                        return OutlinedButton(
-                          style: OutlinedButton.styleFrom(
-                            minimumSize: const Size(72, 40),
-                            padding: const EdgeInsets.symmetric(horizontal: 14),
-                            backgroundColor:
-                                sel ? scheme.primaryContainer : scheme.surface,
-                            foregroundColor: sel
-                                ? scheme.onPrimaryContainer
-                                : scheme.onSurface,
-                            side: BorderSide(
-                                color: sel ? scheme.primary : scheme.outline),
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8)),
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _slot = sl;
-                              if (_personnelId == null &&
-                                  sl.availableStaff.isNotEmpty) {
-                                final auto = sl.availableStaff.first;
-                                _autoStaffId = auto.id;
-                                _autoStaffName = auto.name;
-                              } else {
-                                _autoStaffId = null;
-                                _autoStaffName = null;
-                              }
-                            });
-                          },
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(sl.timeText),
-                              if (_personnelId == null &&
-                                  sl.availableStaff.isNotEmpty) ...[
-                                const SizedBox(height: 4),
-                                SizedBox(
-                                  width: 70,
-                                  child: Wrap(
-                                    alignment: WrapAlignment.center,
-                                    spacing: 2,
-                                    runSpacing: 2,
-                                    children: [
-                                      for (final staff
-                                          in sl.availableStaff.take(4))
-                                        Tooltip(
-                                          message: staff.name,
-                                          child: CircleAvatar(
-                                            radius: 10,
-                                            backgroundImage: staff.photoUrl !=
-                                                    null
-                                                ? NetworkImage(staff.photoUrl!)
-                                                : null,
-                                            child: staff.photoUrl == null
-                                                ? Text(
-                                                    staff.initials ?? '?',
-                                                    style: const TextStyle(
-                                                      fontSize: 8,
-                                                      fontWeight:
-                                                          FontWeight.w700,
-                                                    ),
-                                                  )
-                                                : null,
-                                          ),
-                                        ),
-                                      if (sl.availableStaff.length > 4)
-                                        CircleAvatar(
-                                          radius: 10,
-                                          child: Text(
-                                            '+${sl.availableStaff.length - 4}',
-                                            style: const TextStyle(fontSize: 8),
-                                          ),
-                                        ),
-                                    ],
-                                  ),
+              if (_personnelId != null)
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    for (final sl in _slots)
+                      Builder(
+                        builder: (ctx) {
+                          final scheme = Theme.of(ctx).colorScheme;
+                          final sel = _slot?.startTime == sl.startTime;
+                          return OutlinedButton(
+                            style: OutlinedButton.styleFrom(
+                              minimumSize: const Size(72, 40),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 14),
+                              backgroundColor: sel
+                                  ? scheme.primaryContainer
+                                  : scheme.surface,
+                              foregroundColor: sel
+                                  ? scheme.onPrimaryContainer
+                                  : scheme.onSurface,
+                              side: BorderSide(
+                                  color: sel ? scheme.primary : scheme.outline),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8)),
+                            ),
+                            onPressed: () => _selectSlot(sl),
+                            child: Text(sl.timeText),
+                          );
+                        },
+                      ),
+                  ],
+                )
+              else
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    for (final sl in _slots)
+                      for (final staff in sl.availableStaff)
+                        Builder(
+                          builder: (ctx) {
+                            final scheme = Theme.of(ctx).colorScheme;
+                            final sel = _slot?.startTime == sl.startTime &&
+                                _slotStaffId == staff.id;
+                            return Tooltip(
+                              message: staff.name,
+                              child: OutlinedButton(
+                                style: OutlinedButton.styleFrom(
+                                  minimumSize: const Size(96, 44),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 12),
+                                  backgroundColor: sel
+                                      ? scheme.primaryContainer
+                                      : scheme.surface,
+                                  foregroundColor: sel
+                                      ? scheme.onPrimaryContainer
+                                      : scheme.onSurface,
+                                  side: BorderSide(
+                                      color: sel
+                                          ? scheme.primary
+                                          : scheme.outline),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8)),
                                 ),
-                              ],
-                            ],
-                          ),
-                        );
-                      },
-                    ),
-                ],
-              ),
+                                onPressed: () => _selectSlot(sl, staff: staff),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(sl.timeText),
+                                    const SizedBox(width: 8),
+                                    Container(
+                                      width: 22,
+                                      height: 22,
+                                      alignment: Alignment.center,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: sel
+                                            ? scheme.primary
+                                            : scheme.surfaceContainerHighest,
+                                      ),
+                                      child: Text(
+                                        _staffSymbol(staff),
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w800,
+                                          color: sel
+                                              ? scheme.onPrimary
+                                              : scheme.onSurfaceVariant,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                  ],
+                ),
             ],
           ],
         );
