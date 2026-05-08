@@ -251,26 +251,16 @@ class _BookingWizardPageState extends State<BookingWizardPage> {
           );
           if (!mounted) return;
           if (paid == true) {
-            await showDialog<void>(
-              context: context,
-              builder: (ctx) => AlertDialog(
-                title: const Text('Tamamlandi'),
-                content: const Text(
-                  'Odeme tamamlandi. Randevunuzu Randevularim bolumunden takip edebilirsiniz.',
-                ),
-                actions: [
-                  TextButton(
-                      onPressed: () => Navigator.pop(ctx),
-                      child: const Text('Kapat')),
-                ],
-              ),
+            await _showOkAndPop(
+              title: 'Randevunuz onaylandı',
+              message:
+                  'Ödeme tamamlandı, randevunuz oluşturuldu. Randevularım bölümünden takip edebilirsiniz.',
             );
-            if (mounted) Navigator.pop(context);
             return;
           }
           if (paid == false && mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Odeme tamamlanamadi.')),
+              const SnackBar(content: Text('Ödeme tamamlanamadı.')),
             );
           }
         } else if (r.success && deposit > 0) {
@@ -283,20 +273,28 @@ class _BookingWizardPageState extends State<BookingWizardPage> {
             ),
           );
         } else if (r.success) {
-          await _showOkAndPop(r.message);
+          await _showOkAndPop(
+            title: 'Randevu talebiniz alındı',
+            message: r.message ??
+                'Salon randevunuzu onayladığında bilgilendirileceksiniz. Durumu Randevularım bölümünden takip edebilirsiniz.',
+          );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(r.message ?? 'Randevu olusturulamadi')),
+            SnackBar(content: Text(r.message ?? 'Randevu oluşturulamadı')),
           );
         }
       } else {
         final r = await api.bookSimple(slug: widget.slug, body: body);
         if (!mounted) return;
         if (r.success) {
-          await _showOkAndPop(r.message);
+          await _showOkAndPop(
+            title: 'Randevu talebiniz alındı',
+            message: r.message ??
+                'Bu salon online ödeme almıyor. Salon randevunuzu onayladığında bilgilendirileceksiniz.',
+          );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(r.message ?? 'Randevu olusturulamadi')),
+            SnackBar(content: Text(r.message ?? 'Randevu oluşturulamadı')),
           );
         }
       }
@@ -310,12 +308,12 @@ class _BookingWizardPageState extends State<BookingWizardPage> {
     }
   }
 
-  Future<void> _showOkAndPop(String? msg) async {
+  Future<void> _showOkAndPop({required String title, required String message}) async {
     await showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Randevunuz alindi'),
-        content: Text(msg ?? 'Salon onayi bekleniyor.'),
+        title: Text(title),
+        content: Text(message),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx), child: const Text('Tamam')),

@@ -333,6 +333,9 @@ class PlatformUser {
   }
 }
 
+/// Backend SlnAppointment.StatusId: 1=Planlanmış (online ödeme yoksa
+/// "Onay bekliyor"), 2=Onaylandı (ödeme alındı veya salon onayladı),
+/// 3=Tamamlandı, 4=İptal.
 class PlatformAppointment {
   PlatformAppointment({
     required this.id,
@@ -348,6 +351,31 @@ class PlatformAppointment {
     this.isPrepaid = false,
     this.prepaidAmount = 0,
   });
+
+  bool get isPlanned => statusId == 1;
+  bool get isConfirmed => statusId == 2;
+  bool get isCompleted => statusId == 3;
+  bool get isCancelled => statusId == 4;
+
+  /// Online ödeme alınmadan oluşan ve salon onayı bekleyen kayıt.
+  bool get awaitsSalonApproval => statusId == 1 && !isPrepaid;
+
+  /// Kullanıcı yüzlü etiket (Hesabım > Randevularım kartı için).
+  String get statusLabel {
+    if (awaitsSalonApproval) return 'Onay bekliyor';
+    switch (statusId) {
+      case 1:
+        return 'Planlandı';
+      case 2:
+        return 'Onaylandı';
+      case 3:
+        return 'Tamamlandı';
+      case 4:
+        return 'İptal';
+      default:
+        return 'Bilinmiyor';
+    }
+  }
 
   final int id;
   final String salonName;

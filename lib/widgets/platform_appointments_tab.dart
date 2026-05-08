@@ -131,20 +131,47 @@ class _AppointmentList extends StatelessWidget {
           itemBuilder: (context, i) {
             final a = items[i];
             final services = a.serviceNames.join(', ');
+            final scheme = Theme.of(context).colorScheme;
             return Card(
               child: Padding(
                 padding: const EdgeInsets.all(12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(a.salonName, style: Theme.of(context).textTheme.titleMedium),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            a.salonName,
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                        ),
+                        _StatusBadge(appointment: a),
+                      ],
+                    ),
                     const SizedBox(height: 4),
                     Text('${dateFmt.format(a.appointmentDate)} · ${a.startLabel} — ${a.endLabel}'),
-                    if (services.isNotEmpty) Text(services, style: const TextStyle(color: Colors.black54)),
+                    if (services.isNotEmpty)
+                      Text(services, style: TextStyle(color: scheme.onSurfaceVariant)),
                     if (a.personnelName != null && a.personnelName!.isNotEmpty)
                       Text('Personel: ${a.personnelName}', style: const TextStyle(fontSize: 13)),
-                    if (a.totalPrice > 0) Text('${a.totalPrice.toStringAsFixed(2)} TL'),
-                    if (allowCancel)
+                    if (a.totalPrice > 0)
+                      Text(
+                        a.isPrepaid && a.prepaidAmount > 0
+                            ? '${a.totalPrice.toStringAsFixed(2)} TL · ${a.prepaidAmount.toStringAsFixed(2)} TL ödendi'
+                            : '${a.totalPrice.toStringAsFixed(2)} TL',
+                      ),
+                    if (a.awaitsSalonApproval)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 6),
+                        child: Text(
+                          'Salon randevunuzu onayladığında bilgilendirileceksiniz.',
+                          style: TextStyle(
+                              fontSize: 12, color: scheme.onSurfaceVariant),
+                        ),
+                      ),
+                    if (allowCancel && !a.isCancelled)
                       Align(
                         alignment: Alignment.centerRight,
                         child: TextButton(
@@ -159,6 +186,49 @@ class _AppointmentList extends StatelessWidget {
           },
         );
       },
+    );
+  }
+}
+
+class _StatusBadge extends StatelessWidget {
+  const _StatusBadge({required this.appointment});
+  final PlatformAppointment appointment;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    Color bg;
+    Color fg;
+    if (appointment.isCancelled) {
+      bg = scheme.errorContainer;
+      fg = scheme.onErrorContainer;
+    } else if (appointment.isCompleted) {
+      bg = scheme.surfaceContainerHighest;
+      fg = scheme.onSurfaceVariant;
+    } else if (appointment.isConfirmed) {
+      bg = const Color(0xFFD1FAE5);
+      fg = const Color(0xFF065F46);
+    } else if (appointment.awaitsSalonApproval) {
+      bg = const Color(0xFFFEF3C7);
+      fg = const Color(0xFF92400E);
+    } else {
+      bg = scheme.primaryContainer;
+      fg = scheme.onPrimaryContainer;
+    }
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        appointment.statusLabel,
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          color: fg,
+        ),
+      ),
     );
   }
 }
