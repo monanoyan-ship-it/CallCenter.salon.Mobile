@@ -1,30 +1,60 @@
 import 'package:flutter/material.dart';
 
 /// Randevu / iş uygulaması görünümü — nötr yüzeyler, düşük doygunluklu vurgu.
+/// `light()` ve `dark()` aynı bileşen şablonunu paylaşır; renkler `ColorScheme`'den
+/// çekildiğinden ekran kodu (Card, FilledButton, vb.) iki modda da otomatik adapte olur.
 abstract final class AppTheme {
+  // Light tonlari
   static const Color _ink = Color(0xFF1C2434);
   static const Color _muted = Color(0xFF5C6578);
   static const Color _accent = Color(0xFF2563EB);
-  static const Color _surface = Color(0xFFF2F4F7);
+  static const Color _surfaceLight = Color(0xFFF2F4F7);
 
-  static ThemeData light() {
-    final scheme = ColorScheme.light(
-      primary: _accent,
-      onPrimary: Colors.white,
-      primaryContainer: Color(0xFFE8EEF9),
-      onPrimaryContainer: _ink,
-      secondary: _muted,
-      onSecondary: Colors.white,
-      surface: Colors.white,
-      onSurface: _ink,
-      onSurfaceVariant: _muted,
-      outline: Color(0xFFD6DCE6),
-      outlineVariant: Color(0xFFE6EAEF),
-      surfaceContainerHighest: _surface,
-      error: Color(0xFFB3261E),
-      onError: Colors.white,
-    );
+  // Dark tonlari (Material 3 onerilen kontrast araliklari)
+  static const Color _accentDark = Color(0xFF60A5FA);
+  static const Color _inkDark = Color(0xFFE6EAF2);
+  static const Color _mutedDark = Color(0xFF9AA3B2);
+  static const Color _surfaceDark = Color(0xFF14181F);
+  static const Color _surfaceContainerDark = Color(0xFF1E232C);
 
+  static ThemeData light() => _build(_lightScheme());
+  static ThemeData dark() => _build(_darkScheme());
+
+  static ColorScheme _lightScheme() => const ColorScheme.light(
+        primary: _accent,
+        onPrimary: Colors.white,
+        primaryContainer: Color(0xFFE8EEF9),
+        onPrimaryContainer: _ink,
+        secondary: _muted,
+        onSecondary: Colors.white,
+        surface: Colors.white,
+        onSurface: _ink,
+        onSurfaceVariant: _muted,
+        outline: Color(0xFFD6DCE6),
+        outlineVariant: Color(0xFFE6EAEF),
+        surfaceContainerHighest: _surfaceLight,
+        error: Color(0xFFB3261E),
+        onError: Colors.white,
+      );
+
+  static ColorScheme _darkScheme() => const ColorScheme.dark(
+        primary: _accentDark,
+        onPrimary: Color(0xFF0B2545),
+        primaryContainer: Color(0xFF1E3A5F),
+        onPrimaryContainer: Color(0xFFD8E4F5),
+        secondary: _mutedDark,
+        onSecondary: Color(0xFF14181F),
+        surface: _surfaceDark,
+        onSurface: _inkDark,
+        onSurfaceVariant: _mutedDark,
+        outline: Color(0xFF3A424F),
+        outlineVariant: Color(0xFF2A2F38),
+        surfaceContainerHighest: _surfaceContainerDark,
+        error: Color(0xFFF2B8B5),
+        onError: Color(0xFF601410),
+      );
+
+  static ThemeData _build(ColorScheme scheme) {
     return ThemeData(
       colorScheme: scheme,
       useMaterial3: true,

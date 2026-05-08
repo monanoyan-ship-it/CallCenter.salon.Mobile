@@ -1,7 +1,8 @@
+import 'package:callcenter_salon_mobil/config/app_config.dart';
 import 'package:callcenter_salon_mobil/constants/app_audience.dart';
 import 'package:callcenter_salon_mobil/models/platform_models.dart';
-import 'package:callcenter_salon_mobil/screens/booking_wizard_page.dart';
 import 'package:callcenter_salon_mobil/screens/login_page.dart';
+import 'package:callcenter_salon_mobil/screens/salon_profile_page.dart';
 import 'package:callcenter_salon_mobil/services/corp_api.dart';
 import 'package:callcenter_salon_mobil/state/session_state.dart';
 import 'package:callcenter_salon_mobil/util/api_errors.dart';
@@ -61,15 +62,10 @@ class _DiscoverPageState extends State<DiscoverPage> {
     super.dispose();
   }
 
-  Future<void> _navigateBookingWithSlug(String slug, {bool showSlugBusy = false}) async {
+  /// Slug'la salonu açar — profil sayfasına gider, login zorunlu değil
+  /// (login profil içindeki Randevu al CTA'sından booking adımında istenir).
+  Future<void> _openSalonBySlug(String slug, {bool showSlugBusy = false}) async {
     if (slug.isEmpty) return;
-    final session = context.read<SessionState>();
-    if (!session.isLoggedIn) {
-      await Navigator.push<void>(context, MaterialPageRoute(builder: (_) => const LoginPage()));
-    }
-    if (!mounted) return;
-    if (!context.read<SessionState>().isLoggedIn) return;
-
     if (showSlugBusy) setState(() => _slugBookingBusy = true);
     try {
       await context.read<CorpApiClient>().fetchSalonProfile(slug);
@@ -77,7 +73,7 @@ class _DiscoverPageState extends State<DiscoverPage> {
       if (showSlugBusy) setState(() => _slugBookingBusy = false);
       await Navigator.push<void>(
         context,
-        MaterialPageRoute(builder: (_) => BookingWizardPage(slug: slug)),
+        MaterialPageRoute(builder: (_) => SalonProfilePage(slug: slug)),
       );
     } catch (e) {
       if (mounted) {
@@ -87,7 +83,7 @@ class _DiscoverPageState extends State<DiscoverPage> {
     }
   }
 
-  Future<void> _openBookingFromSlug() async {
+  Future<void> _openSalonFromSlugInput() async {
     final slug = _slugCtl.text.trim();
     if (slug.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -95,7 +91,7 @@ class _DiscoverPageState extends State<DiscoverPage> {
       );
       return;
     }
-    await _navigateBookingWithSlug(slug, showSlugBusy: true);
+    await _openSalonBySlug(slug, showSlugBusy: true);
   }
 
   Future<void> _recenterOnDeviceLocation() async {
@@ -207,13 +203,13 @@ class _DiscoverPageState extends State<DiscoverPage> {
                       : () async {
                           Navigator.pop(ctx);
                           if (match != null) {
-                            await _openBooking(match);
+                            await _openSalon(match);
                           } else {
-                            await _navigateBookingWithSlug(pin.slug);
+                            await _openSalonBySlug(pin.slug);
                           }
                         },
-                  icon: const Icon(Icons.calendar_month),
-                  label: const Text('Randevu al'),
+                  icon: const Icon(Icons.storefront_outlined),
+                  label: const Text('Salonu aç'),
                 ),
               ],
             ),
@@ -418,18 +414,18 @@ class _DiscoverPageState extends State<DiscoverPage> {
     return markers;
   }
 
-  Future<void> _openBooking(PublishedBranchItem b) async {
+  /// Şube kartına tıklayınca profil sayfası açılır; login profil içindeki
+  /// Randevu al CTA'sından booking adımında istenir.
+  Future<void> _openSalon(PublishedBranchItem b) async {
     if (b.slug.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Bu şube için kısa adres (slug) tanımlı değil.')),
       );
       return;
     }
-    final logged = await ensureDiscoverLogin(context);
-    if (!mounted || !logged) return;
     await Navigator.push<void>(
       context,
-      MaterialPageRoute(builder: (_) => BookingWizardPage(slug: b.slug)),
+      MaterialPageRoute(builder: (_) => SalonProfilePage(slug: b.slug)),
     );
   }
 
@@ -563,8 +559,8 @@ class _DiscoverPageState extends State<DiscoverPage> {
                         ),
                         children: [
                           TileLayer(
-                            urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                            userAgentPackageName: 'com.corplynk.salon.callcenter_salon_mobil',
+                            urlTemplate: AppConfig.mapTileUrl,
+                            userAgentPackageName: AppConfig.mapTileUserAgent,
                           ),
                           MarkerLayer(markers: _mapMarkers()),
                         ],
@@ -578,11 +574,11 @@ class _DiscoverPageState extends State<DiscoverPage> {
                           color: Colors.white.withValues(alpha: 0.85),
                           borderRadius: BorderRadius.circular(6),
                         ),
-                        child: const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           child: Text(
-                            '© OpenStreetMap',
-                            style: TextStyle(fontSize: 10, color: Colors.black54),
+                            AppConfig.mapTileAttribution,
+                            style: const TextStyle(fontSize: 10, color: Colors.black54),
                           ),
                         ),
                       ),
@@ -718,7 +714,7 @@ class _DiscoverPageState extends State<DiscoverPage> {
                       child: _BranchDiscoverCard(
                         item: e.item,
                         distanceText: distanceLabelKm(e.distanceKm),
-                        onOpen: () => _openBooking(e.item),
+                        onOpen: () => _openSalon(e.item),
                       ),
                     );
                   },
@@ -768,7 +764,7 @@ class _DiscoverPageState extends State<DiscoverPage> {
                             controller: _slugCtl,
                             textInputAction: TextInputAction.go,
                             autocorrect: false,
-                            onSubmitted: (_) => _openBookingFromSlug(),
+                            onSubmitted: (_) => _openSalonFromSlugInput(),
                             decoration: const InputDecoration(
                               labelText: 'Salon kısa adresi (slug)',
                               hintText: 'ornek-sube',
@@ -778,15 +774,15 @@ class _DiscoverPageState extends State<DiscoverPage> {
                           ),
                           const SizedBox(height: 14),
                           FilledButton.icon(
-                            onPressed: _slugBookingBusy ? null : _openBookingFromSlug,
+                            onPressed: _slugBookingBusy ? null : _openSalonFromSlugInput,
                             icon: _slugBookingBusy
                                 ? const SizedBox(
                                     width: 18,
                                     height: 18,
                                     child: CircularProgressIndicator(strokeWidth: 2),
                                   )
-                                : const Icon(Icons.calendar_month),
-                            label: Text(_slugBookingBusy ? 'Kontrol…' : 'Randevu al'),
+                                : const Icon(Icons.storefront_outlined),
+                            label: Text(_slugBookingBusy ? 'Kontrol…' : 'Salonu aç'),
                           ),
                         ],
                       ),

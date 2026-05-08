@@ -1,14 +1,16 @@
 import 'package:callcenter_salon_mobil/constants/app_audience.dart';
 import 'package:callcenter_salon_mobil/models/booking_models.dart';
 import 'package:callcenter_salon_mobil/models/platform_models.dart';
-import 'package:callcenter_salon_mobil/screens/booking_wizard_page.dart';
 import 'package:callcenter_salon_mobil/screens/login_page.dart';
+import 'package:callcenter_salon_mobil/screens/receipt_view_page.dart';
 import 'package:callcenter_salon_mobil/screens/register_page.dart';
+import 'package:callcenter_salon_mobil/screens/salon_profile_page.dart';
 import 'package:callcenter_salon_mobil/services/corp_api.dart';
 import 'package:callcenter_salon_mobil/state/session_state.dart';
 import 'package:callcenter_salon_mobil/util/api_errors.dart';
 import 'package:callcenter_salon_mobil/widgets/platform_appointments_tab.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 /// Web `/user/panel` ile aynı sekme başlıkları: Salonlarım, Randevularım, Sadakat, Profilim, Fatura.
@@ -52,7 +54,7 @@ class UserPanelPage extends StatelessWidget {
     }
 
     return DefaultTabController(
-      length: 5,
+      length: 6,
       child: Scaffold(
         appBar: AppBar(
           title: Text(session.user?.fullName ?? 'Hesabım'),
@@ -69,6 +71,7 @@ class UserPanelPage extends StatelessWidget {
               Tab(icon: Icon(Icons.storefront), text: 'Salonlarım'),
               Tab(icon: Icon(Icons.calendar_month), text: 'Randevularım'),
               Tab(icon: Icon(Icons.star_outline), text: 'Sadakat'),
+              Tab(icon: Icon(Icons.payments_outlined), text: 'Ödemeler'),
               Tab(icon: Icon(Icons.person_outline), text: 'Profilim'),
               Tab(icon: Icon(Icons.receipt_long), text: 'Fatura'),
             ],
@@ -79,6 +82,7 @@ class UserPanelPage extends StatelessWidget {
             _MySalonsTab(),
             PlatformAppointmentsTab(),
             _LoyaltyTab(),
+            _PaymentsTab(),
             _ProfileTab(),
             _BillingTab(),
           ],
@@ -171,7 +175,7 @@ class _MySalonsTabState extends State<_MySalonsTab> {
                     if (!context.mounted || slug == null || slug.isEmpty) return;
                     await Navigator.push<void>(
                       context,
-                      MaterialPageRoute(builder: (_) => BookingWizardPage(slug: slug)),
+                      MaterialPageRoute(builder: (_) => SalonProfilePage(slug: slug)),
                     );
                   },
                 ),
@@ -304,6 +308,217 @@ class _LoyaltyTabState extends State<_LoyaltyTab> {
                           Text('${g.code} — ${g.remainingBalance.toStringAsFixed(2)} TL (${g.isActive ? 'aktif' : 'pasif'})'),
                       ],
                     ],
+                  ),
+                ),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _PaymentsTab extends StatefulWidget {
+  const _PaymentsTab();
+
+  @override
+  State<_PaymentsTab> createState() => _PaymentsTabState();
+}
+
+class _PaymentsTabState extends State<_PaymentsTab> {
+  static final NumberFormat _money =
+      NumberFormat.currency(locale: 'tr_TR', symbol: '₺', decimalDigits: 2);
+  static final DateFormat _date = DateFormat('d MMM y · HH:mm', 'tr_TR');
+
+  Future<List<PaymentHistoryEntry>>? _future;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _reload();
+    });
+  }
+
+  void _reload() {
+    setState(() {
+      _future = context.read<CorpApiClient>().fetchPaymentHistory();
+    });
+  }
+
+  Future<void> _openReceipt(PaymentHistoryEntry e) async {
+    if (!e.canDownloadReceipt) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Bu kayıt için makbuz mevcut değil.')),
+      );
+      return;
+    }
+    try {
+      final html = await context.read<CorpApiClient>().fetchMyReceiptHtml(e.uid);
+      if (!mounted) return;
+      if (html.trim().isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Makbuz boş döndü.')),
+        );
+        return;
+      }
+      await Navigator.push<void>(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ReceiptViewPage(
+            htmlContent: html,
+            title: 'Makbuz · ${e.paymentType}',
+          ),
+        ),
+      );
+    } catch (err) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(dioErrorMessage(err))),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return RefreshIndicator(
+      onRefresh: () async => _reload(),
+      child: FutureBuilder<List<PaymentHistoryEntry>>(
+        future: _future,
+        builder: (context, snap) {
+          if (snap.connectionState != ConnectionState.done) {
+            return ListView(
+              children: const [SizedBox(height: 120), Center(child: CircularProgressIndicator())],
+            );
+          }
+          if (snap.hasError) {
+            return ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Text(dioErrorMessage(snap.error!)),
+                ),
+              ],
+            );
+          }
+          final list = snap.data ?? [];
+          if (list.isEmpty) {
+            return ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(24),
+              children: [
+                Icon(Icons.payments_outlined, size: 48, color: scheme.onSurfaceVariant),
+                const SizedBox(height: 12),
+                const Text('Henüz ödeme kaydınız yok.', textAlign: TextAlign.center),
+              ],
+            );
+          }
+          return ListView.separated(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(12),
+            itemCount: list.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 8),
+            itemBuilder: (context, i) {
+              final e = list[i];
+              final isSuccess = e.status.toLowerCase().contains('başarı') ||
+                  e.status.toLowerCase().contains('basari') ||
+                  e.status.toLowerCase().contains('success');
+              return Card(
+                child: InkWell(
+                  onTap: e.canDownloadReceipt ? () => _openReceipt(e) : null,
+                  borderRadius: BorderRadius.circular(10),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: scheme.primaryContainer,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Icon(Icons.receipt_long, color: scheme.onPrimaryContainer),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                e.paymentType,
+                                style: const TextStyle(fontWeight: FontWeight.w600),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                _date.format(e.createdAt.toLocal()),
+                                style: TextStyle(
+                                    fontSize: 12, color: scheme.onSurfaceVariant),
+                              ),
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: isSuccess
+                                          ? Colors.green.withValues(alpha: 0.12)
+                                          : scheme.errorContainer.withValues(alpha: 0.5),
+                                      borderRadius: BorderRadius.circular(999),
+                                    ),
+                                    child: Text(
+                                      e.status,
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        color: isSuccess
+                                            ? Colors.green.shade800
+                                            : scheme.onErrorContainer,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              _money.format(e.amount),
+                              style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  color: scheme.primary),
+                            ),
+                            if (e.canDownloadReceipt)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 4),
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.description_outlined,
+                                        size: 14, color: scheme.onSurfaceVariant),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      'Makbuz',
+                                      style: TextStyle(
+                                          fontSize: 11, color: scheme.onSurfaceVariant),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               );

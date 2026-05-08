@@ -21,3 +21,6 @@ build/
 *.log
 .env
 *.local.dart
+
+# Tooling — local AI assistant settings (per-machine)
+.claude/settings.local.json

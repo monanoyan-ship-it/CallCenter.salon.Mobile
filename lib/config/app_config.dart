@@ -41,4 +41,26 @@ class AppConfig {
     'ALLOW_BAD_SSL',
     defaultValue: false,
   );
+
+  /// Harita döşeme (tile) URL kalıbı. Varsayılan OSM yalnızca **geliştirme**
+  /// içindir; mağaza yayınında OSM Foundation kullanım politikasına aykırıdır.
+  /// Production için Mapbox/MapTiler/Stadia/Carto vs. ile değiştir:
+  /// `--dart-define=MAP_TILE_URL=https://api.maptiler.com/maps/streets/{z}/{x}/{y}.png?key=YOUR_KEY`
+  static const String mapTileUrl = String.fromEnvironment(
+    'MAP_TILE_URL',
+    defaultValue: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+  );
+
+  /// Bazı sağlayıcıların atıf metni gerektirir (ör. Mapbox); UI altına yazılır.
+  /// Default OSM atıfı: '© OpenStreetMap'.
+  static const String mapTileAttribution = String.fromEnvironment(
+    'MAP_TILE_ATTRIBUTION',
+    defaultValue: '© OpenStreetMap',
+  );
+
+  /// User-Agent başlığı (OSM ve diğer sağlayıcılar için bot/abuse takibi).
+  static const String mapTileUserAgent = String.fromEnvironment(
+    'MAP_TILE_USER_AGENT',
+    defaultValue: 'com.corplynk.salon.callcenter_salon_mobil',
+  );
 }

@@ -1,6 +1,7 @@
 import 'package:callcenter_salon_mobil/config/app_config.dart';
 import 'package:callcenter_salon_mobil/screens/main_shell.dart';
 import 'package:callcenter_salon_mobil/services/corp_api.dart';
+import 'package:callcenter_salon_mobil/services/deep_link_handler.dart';
 import 'package:callcenter_salon_mobil/services/session_store.dart';
 import 'package:callcenter_salon_mobil/state/session_state.dart';
 import 'package:callcenter_salon_mobil/theme/app_theme.dart';
@@ -9,6 +10,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+
+final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -40,7 +43,10 @@ class SalonBookingApp extends StatelessWidget {
       child: MaterialApp(
         title: 'CorpLynk Salon',
         debugShowCheckedModeBanner: false,
+        navigatorKey: _rootNavigatorKey,
         theme: AppTheme.light(),
+        darkTheme: AppTheme.dark(),
+        themeMode: ThemeMode.system,
         home: const _BootstrapShell(),
       ),
     );
@@ -57,6 +63,7 @@ class _BootstrapShell extends StatefulWidget {
 
 class _BootstrapShellState extends State<_BootstrapShell> {
   bool _ready = false;
+  DeepLinkHandler? _deepLinks;
 
   @override
   void initState() {
@@ -64,9 +71,18 @@ class _BootstrapShellState extends State<_BootstrapShell> {
     _init();
   }
 
+  @override
+  void dispose() {
+    _deepLinks?.dispose();
+    super.dispose();
+  }
+
   Future<void> _init() async {
     await context.read<SessionState>().loadFromDisk();
     if (mounted) setState(() => _ready = true);
+    final handler = DeepLinkHandler(navigatorKey: _rootNavigatorKey);
+    await handler.init();
+    _deepLinks = handler;
   }
 
   @override
