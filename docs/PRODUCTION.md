@@ -232,7 +232,28 @@ Backend commit notunda: *"Eksik (sonraki seans): IPushNotificationService interf
 push gönderim)."* — yani token kaydı çalışıyor ama **push gönderim henüz yok**.
 Backend ekibi bu kısmı tamamlayınca uygulama bildirim alabilir hale gelir.
 
-## 9. Backend hâlâ eksik
+## 9. Crash reporting — Sentry (opsiyonel)
+
+`sentry_flutter` paketi ve `main.dart` koşullu init kod tarafında hazır.
+DSN tanımlanmamışsa Sentry başlatılmaz — dev ortamı etkilenmez.
+
+1. <https://sentry.io> hesap aç → yeni proje (`flutter`)
+2. Aldığın DSN'i build sırasında geçir:
+   ```powershell
+   .\scripts\build.ps1 -Target appbundle -Env prod `
+     -MapTileUrl 'https://api.maptiler.com/maps/streets/{z}/{x}/{y}.png?key=XXX'
+   # ek olarak:
+   # --dart-define=SENTRY_DSN=https://abc@oXXX.ingest.sentry.io/YYY
+   # --dart-define=SENTRY_ENVIRONMENT=prod
+   # --dart-define=SENTRY_TRACES_SAMPLE_RATE=0.1
+   ```
+   (`scripts/build.ps1`'e env-bazlı SENTRY_DSN haritası eklemek istersen
+   `defaults` map'ine ekleyebilirsin.)
+3. Sentry web UI'dan release/source-map upload için
+   `sentry-cli releases new <version>` ve `upload-sourcemaps` adımları —
+   Flutter için detaylı: <https://docs.sentry.io/platforms/flutter/>
+
+## 10. Backend hâlâ eksik
 
 - **Push gönderim servisi** (yukarıda 8d)
 - **In-app notification listesi** (`GET /api/platform/notifications`) — kullanıcının geçmiş bildirimlerini göstermek için

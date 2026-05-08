@@ -7,6 +7,7 @@ import 'package:callcenter_salon_mobil/screens/payment_webview_page.dart';
 import 'package:callcenter_salon_mobil/services/corp_api.dart';
 import 'package:callcenter_salon_mobil/state/session_state.dart';
 import 'package:callcenter_salon_mobil/util/api_errors.dart';
+import 'package:callcenter_salon_mobil/widgets/responsive_center.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:intl/intl.dart';
@@ -306,22 +307,26 @@ class _SalonProfilePageState extends State<SalonProfilePage> {
       ),
       body: RefreshIndicator(
         onRefresh: _bootstrap,
-        child: ListView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: EdgeInsets.zero,
-          children: [
-            _HeroSection(
-              profile: p,
-              reviewStats: _reviews?.stats,
-            ),
-            ..._buildOrderedSections(p),
-            if (p.showHours) _HoursSection(hours: _hours),
-            if (p.showContact) _ContactSection(profile: p, onLaunch: _launch),
-            const SizedBox(height: 24),
-          ],
+        child: ResponsiveCenter(
+          child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: EdgeInsets.zero,
+            children: [
+              _HeroSection(
+                profile: p,
+                reviewStats: _reviews?.stats,
+              ),
+              ..._buildOrderedSections(p),
+              if (p.showHours) _HoursSection(hours: _hours),
+              if (p.showContact) _ContactSection(profile: p, onLaunch: _launch),
+              const SizedBox(height: 24),
+            ],
+          ),
         ),
       ),
-      bottomNavigationBar: p.showBooking ? _BottomBookCta(onTap: _openBooking) : null,
+      bottomNavigationBar: p.showBooking
+          ? ResponsiveCenter(child: _BottomBookCta(onTap: _openBooking))
+          : null,
     );
   }
 

@@ -63,4 +63,23 @@ class AppConfig {
     'MAP_TILE_USER_AGENT',
     defaultValue: 'com.corplynk.salon.callcenter_salon_mobil',
   );
+
+  /// Sentry DSN — boşsa Sentry hiç başlatılmaz (dev varsayılanı).
+  /// Prod build: `--dart-define=SENTRY_DSN=https://abc@oXXX.ingest.sentry.io/YYY`
+  static const String sentryDsn = String.fromEnvironment(
+    'SENTRY_DSN',
+    defaultValue: '',
+  );
+
+  /// Sentry trace örnekleme oranı (0.0–1.0). Performans monitoring için.
+  static const double sentryTracesSampleRate = double.fromEnvironment(
+    'SENTRY_TRACES_SAMPLE_RATE',
+    defaultValue: 0.1,
+  );
+
+  /// Sentry environment etiketi: dev / staging / prod.
+  static const String sentryEnvironment = String.fromEnvironment(
+    'SENTRY_ENVIRONMENT',
+    defaultValue: 'dev',
+  );
 }

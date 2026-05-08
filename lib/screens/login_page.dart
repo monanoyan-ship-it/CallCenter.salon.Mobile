@@ -3,6 +3,7 @@ import 'package:callcenter_salon_mobil/screens/register_page.dart';
 import 'package:callcenter_salon_mobil/services/corp_api.dart';
 import 'package:callcenter_salon_mobil/state/session_state.dart';
 import 'package:callcenter_salon_mobil/util/api_errors.dart';
+import 'package:callcenter_salon_mobil/widgets/responsive_center.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -87,7 +88,8 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Giriş')),
-      body: ListView(
+      body: ResponsiveCenter(
+        child: ListView(
         padding: const EdgeInsets.all(20),
         children: [
           const Text(
@@ -182,6 +184,7 @@ class _LoginPageState extends State<LoginPage> {
             child: const Text('Hesabım yok — kayıt ol'),
           ),
         ],
+      ),
       ),
     );
   }

@@ -1,5 +1,6 @@
 import 'package:callcenter_salon_mobil/services/corp_api.dart';
 import 'package:callcenter_salon_mobil/util/api_errors.dart';
+import 'package:callcenter_salon_mobil/widgets/responsive_center.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -66,7 +67,8 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
     final scheme = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(title: const Text('Yeni şifre belirle')),
-      body: ListView(
+      body: ResponsiveCenter(
+        child: ListView(
         padding: const EdgeInsets.all(20),
         children: [
           if (_done) ...[
@@ -131,6 +133,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
             ),
           ],
         ],
+      ),
       ),
     );
   }

@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -20,7 +21,21 @@ Future<void> main() async {
     initializeDateFormatting('tr'),
     initializeDateFormatting('tr_TR'),
   ]);
-  runApp(const SalonBookingApp());
+
+  if (AppConfig.sentryDsn.isEmpty) {
+    runApp(const SalonBookingApp());
+    return;
+  }
+
+  await SentryFlutter.init(
+    (options) {
+      options.dsn = AppConfig.sentryDsn;
+      options.environment = AppConfig.sentryEnvironment;
+      options.tracesSampleRate = AppConfig.sentryTracesSampleRate;
+      options.attachScreenshot = true;
+    },
+    appRunner: () => runApp(const SalonBookingApp()),
+  );
 }
 
 class SalonBookingApp extends StatelessWidget {
