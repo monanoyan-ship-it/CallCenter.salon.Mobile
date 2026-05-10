@@ -395,9 +395,9 @@ class PlatformAppointment {
     final dateRaw = json['appointmentDate'];
     DateTime date = DateTime.now();
     if (dateRaw is String) {
-      date = DateTime.tryParse(dateRaw) ?? date;
+      date = DateTime.tryParse(dateRaw)?.toLocal() ?? date;
     } else if (dateRaw != null) {
-      date = DateTime.tryParse(dateRaw.toString()) ?? date;
+      date = DateTime.tryParse(dateRaw.toString())?.toLocal() ?? date;
     }
 
     return PlatformAppointment(
@@ -436,9 +436,9 @@ class SalonReview {
     DateTime created = DateTime.now();
     final dt = json['createdAt'];
     if (dt is String) {
-      created = DateTime.tryParse(dt) ?? created;
+      created = DateTime.tryParse(dt)?.toLocal() ?? created;
     } else if (dt != null) {
-      created = DateTime.tryParse(dt.toString()) ?? created;
+      created = DateTime.tryParse(dt.toString())?.toLocal() ?? created;
     }
     return SalonReview(
       clientName: json['clientName'] as String? ?? '',
@@ -756,7 +756,7 @@ class PlatformReview {
   factory PlatformReview.fromJson(Map<String, dynamic> json) {
     DateTime created = DateTime.now();
     final c = json['createdAt'];
-    if (c is String) created = DateTime.tryParse(c) ?? created;
+    if (c is String) created = DateTime.tryParse(c)?.toLocal() ?? created;
     return PlatformReview(
       id: json['id'] as int? ?? 0,
       customerId: json['customerId'] as int? ?? 0,
@@ -833,10 +833,10 @@ class PaymentHistoryEntry {
   factory PaymentHistoryEntry.fromJson(Map<String, dynamic> json) {
     DateTime created = DateTime.now();
     final c = json['createdAt'];
-    if (c is String) created = DateTime.tryParse(c) ?? created;
+    if (c is String) created = DateTime.tryParse(c)?.toLocal() ?? created;
     DateTime? completed;
     final cm = json['completedAt'];
-    if (cm is String && cm.isNotEmpty) completed = DateTime.tryParse(cm);
+    if (cm is String && cm.isNotEmpty) completed = DateTime.tryParse(cm)?.toLocal();
 
     final amt = json['amount'];
     return PaymentHistoryEntry(
