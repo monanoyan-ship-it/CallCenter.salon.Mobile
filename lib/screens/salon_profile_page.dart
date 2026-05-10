@@ -5,9 +5,11 @@ import 'package:callcenter_salon_mobil/screens/gallery_viewer_page.dart';
 import 'package:callcenter_salon_mobil/screens/login_page.dart';
 import 'package:callcenter_salon_mobil/screens/payment_webview_page.dart';
 import 'package:callcenter_salon_mobil/services/corp_api.dart';
+import 'package:callcenter_salon_mobil/state/app_localization_state.dart';
 import 'package:callcenter_salon_mobil/state/session_state.dart';
 import 'package:callcenter_salon_mobil/util/api_errors.dart';
 import 'package:callcenter_salon_mobil/widgets/responsive_center.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:intl/intl.dart';
@@ -101,6 +103,25 @@ class _SalonProfilePageState extends State<SalonProfilePage> {
         _sectionOrder = sectionOrder;
         _loading = false;
       });
+      if (kDebugMode) {
+        final orderedDebug = _buildOrderedSections(profile);
+        final hoursOpenDays = hours.where((h) => !h.isClosed).length;
+        debugPrint(
+          '[salon-profile] slug=${profile.slug} '
+          'orderedSectionsRendered=${orderedDebug.length} '
+          'sectionOrder=${sectionOrder.length} '
+          'cats=${profile.categories.length} '
+          'team=${team.length} '
+          'reviews=${reviews?.reviews.length ?? 0} '
+          'memberships=${memberships.length} '
+          'banners=${banners.length} '
+          'gallery=${gallery.length} '
+          'hoursOpenDays=$hoursOpenDays '
+          'show: services=${profile.showServices} memberships=${profile.showMemberships} '
+          'team=${profile.showTeam} reviews=${profile.showReviews} '
+          'hours=${profile.showHours} contact=${profile.showContact} map=${profile.showMap}',
+        );
+      }
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -153,9 +174,13 @@ class _SalonProfilePageState extends State<SalonProfilePage> {
     );
     if (!mounted || review == null) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
+      SnackBar(
         content: Text(
-            'Yorumunuz alındı, salon onayından sonra listede görünecek.'),
+          context.trRead(
+            'salon.mobile.profile.reviews.received',
+            'Yorumunuz alındı, salon onayından sonra listede görünecek.',
+          ),
+        ),
       ),
     );
   }
@@ -202,7 +227,12 @@ class _SalonProfilePageState extends State<SalonProfilePage> {
         if (!mounted) return;
         if (checkout.htmlContent.isEmpty) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Ödeme formu alınamadı.')),
+            SnackBar(
+              content: Text(context.trRead(
+                'salon.mobile.profile.membership.htmlMissing',
+                'Ödeme formu alınamadı.',
+              )),
+            ),
           );
           return;
         }
@@ -216,8 +246,14 @@ class _SalonProfilePageState extends State<SalonProfilePage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(paid == true
-                ? 'Ödeme alındı, üyeliğiniz aktif.'
-                : 'Ödeme tamamlanmadı.'),
+                ? context.trRead(
+                    'salon.mobile.profile.membership.paymentSuccess',
+                    'Ödeme alındı, üyeliğiniz aktif.',
+                  )
+                : context.trRead(
+                    'salon.mobile.profile.membership.paymentIncomplete',
+                    'Ödeme tamamlanmadı.',
+                  )),
           ),
         );
       } catch (e) {
@@ -231,7 +267,11 @@ class _SalonProfilePageState extends State<SalonProfilePage> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(result.message ?? 'Üyelik başvurunuz alındı.'),
+        content: Text(result.message ??
+            context.trRead(
+              'salon.mobile.profile.membership.received',
+              'Üyelik başvurunuz alındı.',
+            )),
       ),
     );
   }
@@ -241,13 +281,23 @@ class _SalonProfilePageState extends State<SalonProfilePage> {
       final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
       if (!ok && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Açılamadı: $uri')),
+          SnackBar(
+            content: Text(context.trRead(
+              'salon.mobile.profile.linkOpenFailed',
+              'Açılamadı: {uri}',
+            ).replaceFirst('{uri}', uri.toString())),
+          ),
         );
       }
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Açılamadı: $uri')),
+          SnackBar(
+            content: Text(context.trRead(
+              'salon.mobile.profile.linkOpenFailed',
+              'Açılamadı: {uri}',
+            ).replaceFirst('{uri}', uri.toString())),
+          ),
         );
       }
     }
@@ -273,13 +323,13 @@ class _SalonProfilePageState extends State<SalonProfilePage> {
   Widget build(BuildContext context) {
     if (_loading) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Salon')),
+        appBar: AppBar(title: Text(context.tr('salon.mobile.profile.title', 'Salon'))),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
     if (_error != null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Salon')),
+        appBar: AppBar(title: Text(context.tr('salon.mobile.profile.title', 'Salon'))),
         body: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
@@ -293,7 +343,7 @@ class _SalonProfilePageState extends State<SalonProfilePage> {
               FilledButton.icon(
                 onPressed: _bootstrap,
                 icon: const Icon(Icons.refresh),
-                label: const Text('Tekrar dene'),
+                label: Text(context.tr('salon.mobile.common.retry', 'Tekrar dene')),
               ),
             ],
           ),
@@ -310,12 +360,17 @@ class _SalonProfilePageState extends State<SalonProfilePage> {
         child: ResponsiveCenter(
           child: Builder(builder: (context) {
             final orderedSections = _buildOrderedSections(p);
-            final hasAnyContent = orderedSections.isNotEmpty ||
-                (p.showHours && _hours.any((h) => !h.isClosed)) ||
-                (p.showContact &&
-                    ((p.phone ?? '').isNotEmpty ||
-                        (p.email ?? '').isNotEmpty ||
-                        (p.address ?? '').isNotEmpty));
+            final hoursOpenDays = _hours.where((h) => !h.isClosed).length;
+            final hasContact = (p.phone ?? '').isNotEmpty ||
+                (p.email ?? '').isNotEmpty ||
+                (p.address ?? '').isNotEmpty ||
+                (p.website ?? '').isNotEmpty ||
+                (p.instagramHandle ?? '').isNotEmpty ||
+                (p.facebookUrl ?? '').isNotEmpty;
+            final showHoursSection = hoursOpenDays > 0;
+            final showContactSection = hasContact;
+            final hasAnyContent =
+                orderedSections.isNotEmpty || showHoursSection || showContactSection;
             return ListView(
               physics: const AlwaysScrollableScrollPhysics(),
               padding: EdgeInsets.zero,
@@ -326,8 +381,8 @@ class _SalonProfilePageState extends State<SalonProfilePage> {
                 ),
                 if (!hasAnyContent) _EmptyProfileNotice(profile: p),
                 ...orderedSections,
-                if (p.showHours) _HoursSection(hours: _hours),
-                if (p.showContact) _ContactSection(profile: p, onLaunch: _launch),
+                if (showHoursSection) _HoursSection(hours: _hours),
+                if (showContactSection) _ContactSection(profile: p, onLaunch: _launch),
                 const SizedBox(height: 24),
               ],
             );
@@ -335,11 +390,18 @@ class _SalonProfilePageState extends State<SalonProfilePage> {
         ),
       ),
       bottomNavigationBar: p.showBooking
-          ? ResponsiveCenter(child: _BottomBookCta(onTap: _openBooking))
+          ? ResponsiveCenter(
+              expandHeight: false,
+              child: _BottomBookCta(onTap: _openBooking),
+            )
           : null,
     );
   }
 
+  /// Section render kuralı: data varsa **göster** — backend `show*` flag'i
+  /// `false` döndürse bile veri yüklenmişse kullanıcıdan saklamak yerine sergile.
+  /// (`showReviews` özel: yorum yazma CTA'sı değer kattığı için flag true ise
+  /// veri yoksa bile section render edilir; map flag'i koordinat yokken anlamsız.)
   List<Widget> _buildOrderedSections(SalonProfile p) {
     final out = <Widget>[];
     for (final key in _sectionOrder) {
@@ -355,12 +417,12 @@ class _SalonProfilePageState extends State<SalonProfilePage> {
           }
           break;
         case 'services':
-          if (p.showServices && p.categories.isNotEmpty) {
+          if (p.categories.isNotEmpty) {
             out.add(_ServicesSection(categories: p.categories, money: _money));
           }
           break;
         case 'memberships':
-          if (p.showMemberships && _memberships.isNotEmpty) {
+          if (_memberships.isNotEmpty) {
             out.add(_MembershipsSection(
               memberships: _memberships,
               money: _money,
@@ -369,12 +431,12 @@ class _SalonProfilePageState extends State<SalonProfilePage> {
           }
           break;
         case 'team':
-          if (p.showTeam && _team.isNotEmpty) {
+          if (_team.isNotEmpty) {
             out.add(_TeamSection(team: _team));
           }
           break;
         case 'reviews':
-          if (p.showReviews) {
+          if (p.showReviews || (_reviews?.reviews.isNotEmpty ?? false)) {
             out.add(_ReviewsSection(
               data: _reviews,
               onTapWrite: () => _handleReviewWrite(p),
@@ -382,7 +444,7 @@ class _SalonProfilePageState extends State<SalonProfilePage> {
           }
           break;
         case 'map':
-          if (p.showMap && p.latitude != null && p.longitude != null) {
+          if (p.latitude != null && p.longitude != null) {
             out.add(_MapSection(profile: p, onOpenMaps: () => _openExternalMaps(p)));
           }
           break;
@@ -469,7 +531,7 @@ class _HeroSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           AspectRatio(
-            aspectRatio: 16 / 7,
+            aspectRatio: 16 / 9,
             child: coverUrl.isNotEmpty
                 ? Image.network(coverUrl, fit: BoxFit.cover, errorBuilder: (_, __, ___) {
                     return _GradientCover(scheme: scheme);
@@ -630,7 +692,10 @@ class _EmptyProfileNotice extends StatelessWidget {
                   Icon(Icons.info_outline, size: 18, color: scheme.primary),
                   const SizedBox(width: 8),
                   Text(
-                    'Profil bilgileri henüz tamamlanmadı',
+                    context.tr(
+                      'salon.mobile.profile.empty.title',
+                      'Profil bilgileri henüz tamamlanmadı',
+                    ),
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.w600,
                         ),
@@ -639,8 +704,14 @@ class _EmptyProfileNotice extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                'Bu salon henüz hizmetlerini, ekibini veya çalışma saatlerini eklememiş. '
-                '${profile.showBooking ? "Yine de aşağıdaki Randevu Al butonu ile randevu talebi gönderebilirsiniz." : "Salon randevu kabul etmiyor olabilir; iletişim bilgisi varsa doğrudan arayabilirsiniz."}',
+                context.tr(
+                  profile.showBooking
+                      ? 'salon.mobile.profile.empty.bodyWithBooking'
+                      : 'salon.mobile.profile.empty.bodyNoBooking',
+                  profile.showBooking
+                      ? 'Bu salon henüz hizmetlerini, ekibini veya çalışma saatlerini eklememiş. Yine de aşağıdaki Randevu Al butonu ile randevu talebi gönderebilirsiniz.'
+                      : 'Bu salon henüz hizmetlerini, ekibini veya çalışma saatlerini eklememiş. Salon randevu kabul etmiyor olabilir; iletişim bilgisi varsa doğrudan arayabilirsiniz.',
+                ),
                 style: TextStyle(
                     fontSize: 13, color: scheme.onSurfaceVariant, height: 1.4),
               ),
@@ -981,7 +1052,7 @@ class _ReviewsSection extends StatelessWidget {
             child: OutlinedButton.icon(
               onPressed: onTapWrite,
               icon: const Icon(Icons.rate_review_outlined, size: 18),
-              label: const Text('Yorum yaz'),
+              label: Text(context.tr('salon.mobile.profile.reviews.write', 'Yorum yaz')),
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                 minimumSize: Size.zero,
@@ -1095,8 +1166,11 @@ class _ReviewWriteSheetState extends State<_ReviewWriteSheet> {
                 const SizedBox(height: 10),
                 TextFormField(
                   controller: _displayName,
-                  decoration: const InputDecoration(
-                    labelText: 'Görünen ad (opsiyonel)',
+                  decoration: InputDecoration(
+                    labelText: context.tr(
+                      'salon.mobile.profile.reviews.displayName',
+                      'Görünen ad (opsiyonel)',
+                    ),
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -1104,8 +1178,11 @@ class _ReviewWriteSheetState extends State<_ReviewWriteSheet> {
                   controller: _comment,
                   maxLines: 4,
                   maxLength: 1000,
-                  decoration: const InputDecoration(
-                    labelText: 'Yorum (opsiyonel)',
+                  decoration: InputDecoration(
+                    labelText: context.tr(
+                      'salon.mobile.profile.reviews.commentLabel',
+                      'Yorum (opsiyonel)',
+                    ),
                     alignLabelWithHint: true,
                   ),
                 ),
@@ -1122,7 +1199,9 @@ class _ReviewWriteSheetState extends State<_ReviewWriteSheet> {
                           height: 18,
                           child: CircularProgressIndicator(strokeWidth: 2))
                       : const Icon(Icons.send),
-                  label: Text(_saving ? 'Gönderiliyor…' : 'Gönder'),
+                  label: Text(_saving
+                      ? context.tr('salon.mobile.common.sending', 'Gönderiliyor…')
+                      : context.tr('salon.mobile.common.send', 'Gönder')),
                 ),
               ],
             ),
@@ -1431,7 +1510,9 @@ class _MembershipSignupSheetState extends State<_MembershipSignupSheet> {
                 TextFormField(
                   controller: _name,
                   textInputAction: TextInputAction.next,
-                  decoration: const InputDecoration(labelText: 'Ad Soyad'),
+                  decoration: InputDecoration(
+                    labelText: context.tr('salon.mobile.auth.fields.fullName', 'Ad Soyad'),
+                  ),
                   validator: (v) =>
                       (v == null || v.trim().isEmpty) ? 'Ad soyad zorunlu' : null,
                 ),
@@ -1440,7 +1521,9 @@ class _MembershipSignupSheetState extends State<_MembershipSignupSheet> {
                   controller: _phone,
                   textInputAction: TextInputAction.next,
                   keyboardType: TextInputType.phone,
-                  decoration: const InputDecoration(labelText: 'Telefon'),
+                  decoration: InputDecoration(
+                    labelText: context.tr('salon.mobile.auth.fields.phone', 'Telefon'),
+                  ),
                   validator: (v) => (v == null || v.trim().length < 7)
                       ? 'Geçerli bir telefon girin'
                       : null,
@@ -1450,7 +1533,12 @@ class _MembershipSignupSheetState extends State<_MembershipSignupSheet> {
                   controller: _email,
                   textInputAction: TextInputAction.done,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(labelText: 'E-posta (opsiyonel)'),
+                  decoration: InputDecoration(
+                    labelText: context.tr(
+                      'salon.mobile.auth.fields.emailOptional',
+                      'E-posta (isteğe bağlı)',
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 16),
                 FilledButton.icon(
@@ -1696,12 +1784,30 @@ class _MapSection extends StatelessWidget {
   final SalonProfile profile;
   final VoidCallback onOpenMaps;
 
+  /// Mağaza yayını riski: OSM Foundation public tile sunucusu kullanım politikası
+  /// uygulama mağazalarında izin vermez. Prod build'de Mapbox/MapTiler/Stadia/Carto
+  /// key'i sağlanmadıysa gerçek harita yerine adres + "Yol tarifi" placeholder
+  /// gösterilir; key set edilirse normal interaktif harita.
+  bool get _isPublicOsm =>
+      AppConfig.mapTileUrl.contains('tile.openstreetmap.org');
+
+  bool get _suppressTiles => kReleaseMode && _isPublicOsm;
+
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final lat = profile.latitude!;
     final lng = profile.longitude!;
     final point = LatLng(lat, lng);
+
+    final addressLine = [
+      if ((profile.address ?? '').isNotEmpty) profile.address!.trim(),
+      [
+        if ((profile.district ?? '').isNotEmpty) profile.district!.trim(),
+        if ((profile.city ?? '').isNotEmpty) profile.city!.trim(),
+      ].where((s) => s.isNotEmpty).join(', '),
+    ].where((s) => s.isNotEmpty).join('\n');
+
     return _SectionShell(
       icon: Icons.map_outlined,
       title: 'Konum',
@@ -1713,50 +1819,95 @@ class _MapSection extends StatelessWidget {
           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
         ),
         icon: const Icon(Icons.directions, size: 16),
-        label: const Text('Yol tarifi'),
+        label: Text(context.tr('salon.mobile.profile.map.directions', 'Yol tarifi')),
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child: SizedBox(
-          height: 180,
-          child: Stack(
-            children: [
-              FlutterMap(
-                options: MapOptions(
-                  initialCenter: point,
-                  initialZoom: 15,
-                  interactionOptions: const InteractionOptions(
-                    flags: InteractiveFlag.none,
-                  ),
-                ),
-                children: [
-                  TileLayer(
-                    urlTemplate: AppConfig.mapTileUrl,
-                    userAgentPackageName: AppConfig.mapTileUserAgent,
-                  ),
-                  MarkerLayer(
-                    markers: [
-                      Marker(
-                        point: point,
-                        width: 36,
-                        height: 36,
-                        alignment: Alignment.topCenter,
-                        child: Icon(Icons.location_on,
-                            color: scheme.primary, size: 36),
+      child: _suppressTiles
+          ? _MapPlaceholder(
+              addressLine: addressLine,
+              onOpenMaps: onOpenMaps,
+            )
+          : ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: SizedBox(
+                height: 180,
+                child: Stack(
+                  children: [
+                    FlutterMap(
+                      options: MapOptions(
+                        initialCenter: point,
+                        initialZoom: 15,
+                        interactionOptions: const InteractionOptions(
+                          flags: InteractiveFlag.none,
+                        ),
                       ),
-                    ],
-                  ),
-                ],
-              ),
-              Positioned.fill(
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(onTap: onOpenMaps),
+                      children: [
+                        TileLayer(
+                          urlTemplate: AppConfig.mapTileUrl,
+                          userAgentPackageName: AppConfig.mapTileUserAgent,
+                        ),
+                        MarkerLayer(
+                          markers: [
+                            Marker(
+                              point: point,
+                              width: 36,
+                              height: 36,
+                              alignment: Alignment.topCenter,
+                              child: Icon(Icons.location_on,
+                                  color: scheme.primary, size: 36),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    Positioned.fill(
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(onTap: onOpenMaps),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
+            ),
+    );
+  }
+}
+
+/// Prod'da harita tile sağlayıcı yoksa gösterilen sade kart — adres + Yol tarifi.
+class _MapPlaceholder extends StatelessWidget {
+  const _MapPlaceholder({required this.addressLine, required this.onOpenMaps});
+  final String addressLine;
+  final VoidCallback onOpenMaps;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      height: 180,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Icon(Icons.place_outlined, size: 32, color: scheme.onSurfaceVariant),
+          const SizedBox(height: 8),
+          Text(
+            addressLine.isNotEmpty ? addressLine : 'Konum bilgisi',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+                fontSize: 13, color: scheme.onSurface, height: 1.35),
           ),
-        ),
+          const SizedBox(height: 12),
+          FilledButton.icon(
+            onPressed: onOpenMaps,
+            icon: const Icon(Icons.directions),
+            label: Text(context.tr('salon.mobile.profile.map.directionsAction', 'Yol tarifi al')),
+          ),
+        ],
       ),
     );
   }
