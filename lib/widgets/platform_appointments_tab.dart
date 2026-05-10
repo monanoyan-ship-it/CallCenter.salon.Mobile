@@ -1,5 +1,6 @@
 import 'package:callcenter_salon_mobil/models/booking_models.dart';
 import 'package:callcenter_salon_mobil/services/corp_api.dart';
+import 'package:callcenter_salon_mobil/state/app_localization_state.dart';
 import 'package:callcenter_salon_mobil/util/api_errors.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -39,11 +40,20 @@ class _PlatformAppointmentsTabState extends State<PlatformAppointmentsTab>
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('İptal'),
-        content: const Text('Bu randevuyu iptal etmek istiyor musunuz?'),
+        title: Text(context.tr('salon.mobile.appointments.cancelTitle', 'İptal')),
+        content: Text(context.tr(
+          'salon.mobile.appointments.cancelConfirm',
+          'Bu randevuyu iptal etmek istiyor musunuz?',
+        )),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Vazgeç')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('İptal et')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(context.tr('salon.mobile.common.cancel', 'Vazgeç')),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(context.tr('salon.mobile.appointments.cancelAction', 'İptal et')),
+          ),
         ],
       ),
     );
@@ -64,9 +74,9 @@ class _PlatformAppointmentsTabState extends State<PlatformAppointmentsTab>
       children: [
         TabBar(
           controller: _tabs,
-          tabs: const [
-            Tab(text: 'Yaklaşan'),
-            Tab(text: 'Geçmiş'),
+          tabs: [
+            Tab(text: context.tr('salon.mobile.appointments.upcoming', 'Yaklaşan')),
+            Tab(text: context.tr('salon.mobile.appointments.past', 'Geçmiş')),
           ],
         ),
         Expanded(
@@ -118,11 +128,21 @@ class _AppointmentList extends StatelessWidget {
           return const Center(child: CircularProgressIndicator());
         }
         if (snap.hasError) {
-          return Center(child: Text('Yüklenemedi: ${dioErrorMessage(snap.error!)}'));
+          return Center(
+            child: Text(context.tr(
+              'salon.mobile.common.loadFailedWithMessage',
+              'Yüklenemedi: {message}',
+            ).replaceFirst('{message}', dioErrorMessage(snap.error!))),
+          );
         }
         final items = snap.data ?? [];
         if (items.isEmpty) {
-          return const Center(child: Text('Randevu bulunamadı.'));
+          return Center(
+            child: Text(context.tr(
+              'salon.mobile.appointments.empty',
+              'Randevu bulunamadı.',
+            )),
+          );
         }
         return ListView.separated(
           padding: const EdgeInsets.all(12),
@@ -155,18 +175,32 @@ class _AppointmentList extends StatelessWidget {
                     if (services.isNotEmpty)
                       Text(services, style: TextStyle(color: scheme.onSurfaceVariant)),
                     if (a.personnelName != null && a.personnelName!.isNotEmpty)
-                      Text('Personel: ${a.personnelName}', style: const TextStyle(fontSize: 13)),
+                      Text(
+                        context.tr(
+                          'salon.mobile.appointments.personnelLine',
+                          'Personel: {name}',
+                        ).replaceFirst('{name}', a.personnelName!),
+                        style: const TextStyle(fontSize: 13),
+                      ),
                     if (a.totalPrice > 0)
                       Text(
                         a.isPrepaid && a.prepaidAmount > 0
-                            ? '${a.totalPrice.toStringAsFixed(2)} TL · ${a.prepaidAmount.toStringAsFixed(2)} TL ödendi'
+                            ? context.tr(
+                                'salon.mobile.appointments.prepaidLine',
+                                '{total} TL · {paid} TL ödendi',
+                              )
+                                .replaceFirst('{total}', a.totalPrice.toStringAsFixed(2))
+                                .replaceFirst('{paid}', a.prepaidAmount.toStringAsFixed(2))
                             : '${a.totalPrice.toStringAsFixed(2)} TL',
                       ),
                     if (a.awaitsSalonApproval)
                       Padding(
                         padding: const EdgeInsets.only(top: 6),
                         child: Text(
-                          'Salon randevunuzu onayladığında bilgilendirileceksiniz.',
+                          context.tr(
+                            'salon.mobile.appointments.awaitingApproval',
+                            'Salon randevunuzu onayladığında bilgilendirileceksiniz.',
+                          ),
                           style: TextStyle(
                               fontSize: 12, color: scheme.onSurfaceVariant),
                         ),
@@ -176,7 +210,10 @@ class _AppointmentList extends StatelessWidget {
                         alignment: Alignment.centerRight,
                         child: TextButton(
                           onPressed: () => onCancel(a.id),
-                          child: const Text('İptal et'),
+                          child: Text(context.tr(
+                            'salon.mobile.appointments.cancelAction',
+                            'İptal et',
+                          )),
                         ),
                       ),
                   ],
@@ -193,6 +230,24 @@ class _AppointmentList extends StatelessWidget {
 class _StatusBadge extends StatelessWidget {
   const _StatusBadge({required this.appointment});
   final PlatformAppointment appointment;
+
+  String _label(BuildContext context) {
+    if (appointment.awaitsSalonApproval) {
+      return context.tr('salon.mobile.appointments.status.awaiting', 'Onay bekliyor');
+    }
+    switch (appointment.statusId) {
+      case 1:
+        return context.tr('salon.mobile.appointments.status.planned', 'Planlandı');
+      case 2:
+        return context.tr('salon.mobile.appointments.status.confirmed', 'Onaylandı');
+      case 3:
+        return context.tr('salon.mobile.appointments.status.completed', 'Tamamlandı');
+      case 4:
+        return context.tr('salon.mobile.appointments.status.cancelled', 'İptal');
+      default:
+        return appointment.statusLabel;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -222,7 +277,7 @@ class _StatusBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
-        appointment.statusLabel,
+        _label(context),
         style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w600,
