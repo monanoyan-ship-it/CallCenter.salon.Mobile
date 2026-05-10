@@ -636,7 +636,15 @@ class _HeroSection extends StatelessWidget {
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
-                                  '(${stats.totalCount} yorum)',
+                                  context
+                                      .tr(
+                                        'salon.mobile.profile.reviews.countShort',
+                                        '({count} yorum)',
+                                      )
+                                      .replaceFirst(
+                                        '{count}',
+                                        stats.totalCount.toString(),
+                                      ),
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: scheme.onSurfaceVariant,
@@ -754,7 +762,7 @@ class _BannersSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return _SectionShell(
       icon: Icons.campaign_outlined,
-      title: 'Duyurular',
+      title: context.tr('salon.mobile.profile.sections.banners', 'Duyurular'),
       child: SizedBox(
         height: 160,
         child: PageView.builder(
@@ -807,7 +815,7 @@ class _GallerySection extends StatelessWidget {
   Widget build(BuildContext context) {
     return _SectionShell(
       icon: Icons.photo_library_outlined,
-      title: 'Galeri',
+      title: context.tr('salon.mobile.profile.sections.gallery', 'Galeri'),
       child: SizedBox(
         height: 110,
         child: ListView.separated(
@@ -863,7 +871,7 @@ class _ServicesSectionState extends State<_ServicesSection> {
     final scheme = Theme.of(context).colorScheme;
     return _SectionShell(
       icon: Icons.list_alt,
-      title: 'Hizmetler',
+      title: context.tr('salon.mobile.profile.sections.services', 'Hizmetler'),
       child: Column(
         children: [
           for (final cat in widget.categories)
@@ -898,7 +906,15 @@ class _ServicesSectionState extends State<_ServicesSection> {
                                   Padding(
                                     padding: const EdgeInsets.only(top: 2),
                                     child: Text(
-                                      '${s.durationMinutes} dk',
+                                      context
+                                          .tr(
+                                            'salon.mobile.common.minutes',
+                                            '{count} dk',
+                                          )
+                                          .replaceFirst(
+                                            '{count}',
+                                            s.durationMinutes.toString(),
+                                          ),
                                       style: TextStyle(
                                           fontSize: 11.5, color: scheme.onSurfaceVariant),
                                     ),
@@ -934,7 +950,7 @@ class _TeamSection extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     return _SectionShell(
       icon: Icons.groups_2_outlined,
-      title: 'Ekip',
+      title: context.tr('salon.mobile.profile.sections.team', 'Ekip'),
       child: SizedBox(
         height: 168,
         child: ListView.separated(
@@ -1008,7 +1024,7 @@ class _ReviewsSection extends StatelessWidget {
     final stats = data?.stats;
     return _SectionShell(
       icon: Icons.reviews_outlined,
-      title: 'Yorumlar',
+      title: context.tr('salon.mobile.profile.sections.reviews', 'Yorumlar'),
       trailing: stats != null && stats.totalCount > 0
           ? Row(
               mainAxisSize: MainAxisSize.min,
@@ -1038,7 +1054,10 @@ class _ReviewsSection extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: Text(
-                'Henüz onaylı yorum yok. İlk yorumu siz yazın.',
+                context.tr(
+                  'salon.mobile.profile.reviews.empty',
+                  'Henüz onaylı yorum yok. İlk yorumu siz yazın.',
+                ),
                 style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant),
               ),
             ),
@@ -1139,7 +1158,7 @@ class _ReviewWriteSheetState extends State<_ReviewWriteSheet> {
                     Icon(Icons.rate_review_outlined, color: scheme.primary),
                     const SizedBox(width: 10),
                     Text(
-                      'Yorumunuz',
+                      context.tr('salon.mobile.profile.reviews.sheetTitle', 'Yorumunuz'),
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w700,
                           ),
@@ -1187,7 +1206,10 @@ class _ReviewWriteSheetState extends State<_ReviewWriteSheet> {
                   ),
                 ),
                 Text(
-                  'Yorumunuz salon onayından sonra herkese görünür olacak.',
+                  context.tr(
+                    'salon.mobile.profile.reviews.approvalHint',
+                    'Yorumunuz salon onayından sonra herkese görünür olacak.',
+                  ),
                   style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
                 ),
                 const SizedBox(height: 14),
@@ -1227,7 +1249,9 @@ class _ReviewTile extends StatelessWidget {
           children: [
             Expanded(
               child: Text(
-                review.clientName.isNotEmpty ? review.clientName : 'Misafir',
+                review.clientName.isNotEmpty
+                    ? review.clientName
+                    : context.tr('salon.mobile.profile.reviews.guest', 'Misafir'),
                 style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13.5),
               ),
             ),
@@ -1275,7 +1299,10 @@ class _MembershipsSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return _SectionShell(
       icon: Icons.workspace_premium_outlined,
-      title: 'Üyelik planları',
+      title: context.tr(
+        'salon.mobile.profile.sections.memberships',
+        'Üyelik planları',
+      ),
       child: SizedBox(
         height: 200,
         child: ListView.separated(
@@ -1333,7 +1360,9 @@ class _MembershipCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      plan.price > 0 ? money.format(plan.price) : 'Ücretsiz',
+                      plan.price > 0
+                          ? money.format(plan.price)
+                          : context.tr('salon.mobile.common.free', 'Ücretsiz'),
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
@@ -1344,7 +1373,17 @@ class _MembershipCard extends StatelessWidget {
                     Padding(
                       padding: const EdgeInsets.only(bottom: 2),
                       child: Text(
-                        plan.durationDays > 0 ? '/ ${plan.durationDays} gün' : '',
+                        plan.durationDays > 0
+                            ? context
+                                .tr(
+                                  'salon.mobile.profile.membership.durationDays',
+                                  '/ {days} gün',
+                                )
+                                .replaceFirst(
+                                  '{days}',
+                                  plan.durationDays.toString(),
+                                )
+                            : '',
                         style: TextStyle(fontSize: 11, color: scheme.onSurfaceVariant),
                       ),
                     ),
@@ -1369,16 +1408,36 @@ class _MembershipCard extends StatelessWidget {
                   runSpacing: 6,
                   children: [
                     if (plan.discountPercent > 0)
-                      _MembershipChip(text: '%${plan.discountPercent} indirim'),
+                      _MembershipChip(
+                        text: context
+                            .tr(
+                              'salon.mobile.profile.membership.discount',
+                              '%{percent} indirim',
+                            )
+                            .replaceFirst(
+                              '{percent}',
+                              plan.discountPercent.toString(),
+                            ),
+                      ),
                     if (plan.priorityBooking)
-                      const _MembershipChip(text: 'Öncelikli randevu'),
+                      _MembershipChip(
+                        text: context.tr(
+                          'salon.mobile.profile.membership.priorityBooking',
+                          'Öncelikli randevu',
+                        ),
+                      ),
                   ],
                 ),
                 const SizedBox(height: 6),
                 Align(
                   alignment: Alignment.centerRight,
                   child: Text(
-                    plan.price > 0 ? 'Üye ol →' : 'Başvur →',
+                    plan.price > 0
+                        ? context.tr('salon.mobile.profile.membership.joinCta', 'Üye ol →')
+                        : context.tr(
+                            'salon.mobile.profile.membership.applyCta',
+                            'Başvur →',
+                          ),
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -1491,7 +1550,9 @@ class _MembershipSignupSheetState extends State<_MembershipSignupSheet> {
                       ),
                     ),
                     Text(
-                      paid ? widget.money.format(widget.plan.price) : 'Ücretsiz',
+                      paid
+                          ? widget.money.format(widget.plan.price)
+                          : context.tr('salon.mobile.common.free', 'Ücretsiz'),
                       style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
@@ -1502,7 +1563,10 @@ class _MembershipSignupSheetState extends State<_MembershipSignupSheet> {
                 if (paid) ...[
                   const SizedBox(height: 6),
                   Text(
-                    'Ücretli plan — bilgilerinizi onayladıktan sonra ödeme adımına geçilecek.',
+                    context.tr(
+                      'salon.mobile.profile.membership.paidNotice',
+                      'Ücretli plan. Bilgilerinizi onayladıktan sonra ödeme adımına geçilecek.',
+                    ),
                     style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
                   ),
                 ],
@@ -1513,8 +1577,12 @@ class _MembershipSignupSheetState extends State<_MembershipSignupSheet> {
                   decoration: InputDecoration(
                     labelText: context.tr('salon.mobile.auth.fields.fullName', 'Ad Soyad'),
                   ),
-                  validator: (v) =>
-                      (v == null || v.trim().isEmpty) ? 'Ad soyad zorunlu' : null,
+                  validator: (v) => (v == null || v.trim().isEmpty)
+                      ? context.tr(
+                          'salon.mobile.auth.fields.fullNameRequired',
+                          'Ad soyad zorunlu',
+                        )
+                      : null,
                 ),
                 const SizedBox(height: 10),
                 TextFormField(
@@ -1525,7 +1593,10 @@ class _MembershipSignupSheetState extends State<_MembershipSignupSheet> {
                     labelText: context.tr('salon.mobile.auth.fields.phone', 'Telefon'),
                   ),
                   validator: (v) => (v == null || v.trim().length < 7)
-                      ? 'Geçerli bir telefon girin'
+                      ? context.tr(
+                          'salon.mobile.auth.validation.phoneInvalid',
+                          'Geçerli bir telefon girin',
+                        )
                       : null,
                 ),
                 const SizedBox(height: 10),
@@ -1551,8 +1622,16 @@ class _MembershipSignupSheetState extends State<_MembershipSignupSheet> {
                         )
                       : Icon(paid ? Icons.payment : Icons.check_circle_outline),
                   label: Text(_saving
-                      ? 'Gönderiliyor…'
-                      : (paid ? 'Onayla ve ödemeye geç' : 'Üye ol')),
+                      ? context.tr('salon.mobile.common.sending', 'Gönderiliyor…')
+                      : (paid
+                          ? context.tr(
+                              'salon.mobile.profile.membership.confirmAndPay',
+                              'Onayla ve ödemeye geç',
+                            )
+                          : context.tr(
+                              'salon.mobile.profile.membership.join',
+                              'Üye ol',
+                            ))),
                 ),
               ],
             ),
@@ -1592,12 +1671,19 @@ class _HoursSection extends StatelessWidget {
   const _HoursSection({required this.hours});
   final List<WorkingHourEntry> hours;
 
+  String _dayLabel(BuildContext context, WorkingHourEntry hour) {
+    return context.tr(
+      'salon.mobile.profile.hours.day.${hour.dayKey}',
+      hour.dayLabel,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return _SectionShell(
       icon: Icons.schedule_outlined,
-      title: 'Çalışma saatleri',
+      title: context.tr('salon.mobile.profile.sections.hours', 'Çalışma saatleri'),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -1609,7 +1695,7 @@ class _HoursSection extends StatelessWidget {
                   SizedBox(
                     width: 96,
                     child: Text(
-                      h.dayLabel,
+                      _dayLabel(context, h),
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: h.isToday ? FontWeight.w700 : FontWeight.w500,
@@ -1619,7 +1705,9 @@ class _HoursSection extends StatelessWidget {
                   ),
                   Expanded(
                     child: Text(
-                      h.hoursText,
+                      h.isClosed
+                          ? context.tr('salon.mobile.profile.hours.closed', 'Kapalı')
+                          : h.hoursText,
                       style: TextStyle(
                         fontSize: 13,
                         color: h.isClosed
@@ -1638,7 +1726,7 @@ class _HoursSection extends StatelessWidget {
                         borderRadius: BorderRadius.circular(999),
                       ),
                       child: Text(
-                        'Bugün',
+                        context.tr('salon.mobile.profile.hours.today', 'Bugün'),
                         style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w700,
@@ -1731,7 +1819,7 @@ class _ContactSection extends StatelessWidget {
 
     return _SectionShell(
       icon: Icons.contact_support_outlined,
-      title: 'İletişim',
+      title: context.tr('salon.mobile.profile.sections.contact', 'İletişim'),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -1810,7 +1898,7 @@ class _MapSection extends StatelessWidget {
 
     return _SectionShell(
       icon: Icons.map_outlined,
-      title: 'Konum',
+      title: context.tr('salon.mobile.profile.sections.map', 'Konum'),
       trailing: TextButton.icon(
         onPressed: onOpenMaps,
         style: TextButton.styleFrom(
@@ -1896,7 +1984,9 @@ class _MapPlaceholder extends StatelessWidget {
           Icon(Icons.place_outlined, size: 32, color: scheme.onSurfaceVariant),
           const SizedBox(height: 8),
           Text(
-            addressLine.isNotEmpty ? addressLine : 'Konum bilgisi',
+            addressLine.isNotEmpty
+                ? addressLine
+                : context.tr('salon.mobile.profile.map.locationInfo', 'Konum bilgisi'),
             textAlign: TextAlign.center,
             style: TextStyle(
                 fontSize: 13, color: scheme.onSurface, height: 1.35),
@@ -1929,9 +2019,9 @@ class _BottomBookCta extends StatelessWidget {
             minimumSize: const Size.fromHeight(48),
           ),
           icon: const Icon(Icons.calendar_month),
-          label: const Text(
-            'Randevu al',
-            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+          label: Text(
+            context.tr('salon.mobile.booking.bookNow', 'Randevu al'),
+            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
           ),
         ),
       ),

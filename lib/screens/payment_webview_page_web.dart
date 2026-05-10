@@ -5,6 +5,7 @@ import 'dart:html' as html;
 import 'dart:ui_web' as ui_web;
 
 import 'package:callcenter_salon_mobil/config/app_config.dart';
+import 'package:callcenter_salon_mobil/state/app_localization_state.dart';
 import 'package:flutter/material.dart';
 
 class PaymentWebViewPage extends StatefulWidget {
@@ -83,7 +84,9 @@ $body
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Odeme')),
+      appBar: AppBar(
+        title: Text(context.tr('salon.mobile.payment.title', 'Ödeme')),
+      ),
       body: Stack(
         children: [
           HtmlElementView(viewType: _viewType),

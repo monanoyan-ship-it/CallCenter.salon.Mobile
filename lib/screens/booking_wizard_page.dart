@@ -2,6 +2,7 @@ import 'package:callcenter_salon_mobil/models/booking_models.dart';
 import 'package:callcenter_salon_mobil/screens/login_page.dart';
 import 'package:callcenter_salon_mobil/screens/payment_webview_page.dart';
 import 'package:callcenter_salon_mobil/services/corp_api.dart';
+import 'package:callcenter_salon_mobil/state/app_localization_state.dart';
 import 'package:callcenter_salon_mobil/state/session_state.dart';
 import 'package:callcenter_salon_mobil/util/api_errors.dart';
 import 'package:flutter/material.dart';
@@ -19,14 +20,6 @@ class BookingWizardPage extends StatefulWidget {
 }
 
 class _BookingWizardPageState extends State<BookingWizardPage> {
-  static const List<String> _stepTitles = [
-    'Hizmet seçimi',
-    'Personel',
-    'Tarih ve saat',
-    'İletişim bilgileri',
-    'Onay',
-  ];
-
   int _step = 0;
   SalonProfile? _profile;
   BookingPolicy? _policy;
@@ -55,6 +48,21 @@ class _BookingWizardPageState extends State<BookingWizardPage> {
 
   final _money =
       NumberFormat.currency(locale: 'tr_TR', symbol: '₺', decimalDigits: 2);
+
+  String _stepTitle(int index) {
+    switch (index) {
+      case 0:
+        return context.tr('salon.mobile.booking.step.service', 'Hizmet seçimi');
+      case 1:
+        return context.tr('salon.mobile.booking.step.staff', 'Personel');
+      case 2:
+        return context.tr('salon.mobile.booking.step.datetime', 'Tarih ve saat');
+      case 3:
+        return context.tr('salon.mobile.booking.step.contact', 'İletişim bilgileri');
+      default:
+        return context.tr('salon.mobile.booking.step.confirm', 'Onay');
+    }
+  }
 
   @override
   void initState() {
@@ -252,15 +260,25 @@ class _BookingWizardPageState extends State<BookingWizardPage> {
           if (!mounted) return;
           if (paid == true) {
             await _showOkAndPop(
-              title: 'Randevunuz onaylandı',
-              message:
-                  'Ödeme tamamlandı, randevunuz oluşturuldu. Randevularım bölümünden takip edebilirsiniz.',
+              title: context.tr(
+                'salon.mobile.booking.confirmedTitle',
+                'Randevunuz onaylandı',
+              ),
+              message: context.tr(
+                'salon.mobile.booking.paymentSuccessMessage',
+                'Ödeme tamamlandı, randevunuz oluşturuldu. Randevularım bölümünden takip edebilirsiniz.',
+              ),
             );
             return;
           }
           if (paid == false && mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Ödeme tamamlanamadı.')),
+              SnackBar(
+                content: Text(context.tr(
+                  'salon.mobile.booking.paymentFailed',
+                  'Ödeme tamamlanamadı.',
+                )),
+              ),
             );
           }
         } else if (r.success && deposit > 0) {
@@ -268,19 +286,34 @@ class _BookingWizardPageState extends State<BookingWizardPage> {
             SnackBar(
               content: Text(
                 r.message ??
-                    'Ödeme adımı bekleniyordu ancak sayfa açılamadı. Lütfen tekrar deneyin.',
+                    context.tr(
+                      'salon.mobile.booking.paymentPageMissing',
+                      'Ödeme adımı bekleniyordu ancak sayfa açılamadı. Lütfen tekrar deneyin.',
+                    ),
               ),
             ),
           );
         } else if (r.success) {
           await _showOkAndPop(
-            title: 'Randevu talebiniz alındı',
+            title: context.tr(
+              'salon.mobile.booking.requestReceivedTitle',
+              'Randevu talebiniz alındı',
+            ),
             message: r.message ??
-                'Salon randevunuzu onayladığında bilgilendirileceksiniz. Durumu Randevularım bölümünden takip edebilirsiniz.',
+                context.tr(
+                  'salon.mobile.booking.awaitingApprovalMessage',
+                  'Salon randevunuzu onayladığında bilgilendirileceksiniz. Durumu Randevularım bölümünden takip edebilirsiniz.',
+                ),
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(r.message ?? 'Randevu oluşturulamadı')),
+            SnackBar(
+              content: Text(r.message ??
+                  context.tr(
+                    'salon.mobile.booking.createFailed',
+                    'Randevu oluşturulamadı',
+                  )),
+            ),
           );
         }
       } else {
@@ -288,13 +321,25 @@ class _BookingWizardPageState extends State<BookingWizardPage> {
         if (!mounted) return;
         if (r.success) {
           await _showOkAndPop(
-            title: 'Randevu talebiniz alındı',
+            title: context.tr(
+              'salon.mobile.booking.requestReceivedTitle',
+              'Randevu talebiniz alındı',
+            ),
             message: r.message ??
-                'Bu salon online ödeme almıyor. Salon randevunuzu onayladığında bilgilendirileceksiniz.',
+                context.tr(
+                  'salon.mobile.booking.noOnlinePaymentMessage',
+                  'Bu salon online ödeme almıyor. Salon randevunuzu onayladığında bilgilendirileceksiniz.',
+                ),
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(r.message ?? 'Randevu oluşturulamadı')),
+            SnackBar(
+              content: Text(r.message ??
+                  context.tr(
+                    'salon.mobile.booking.createFailed',
+                    'Randevu oluşturulamadı',
+                  )),
+            ),
           );
         }
       }
@@ -316,7 +361,8 @@ class _BookingWizardPageState extends State<BookingWizardPage> {
         content: Text(message),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(ctx), child: const Text('Tamam')),
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(context.tr('salon.mobile.common.ok', 'Tamam'))),
         ],
       ),
     );
@@ -328,7 +374,7 @@ class _BookingWizardPageState extends State<BookingWizardPage> {
     if (_slotStaffName != null && _slotStaffName!.isNotEmpty) {
       return _slotStaffName!;
     }
-    return 'Personel secilmedi';
+    return context.tr('salon.mobile.booking.staffNotSelected', 'Personel seçilmedi');
   }
 
   String _staffSymbol(SlotStaffMini staff) {
@@ -383,13 +429,20 @@ class _BookingWizardPageState extends State<BookingWizardPage> {
     final phoneCtl = TextEditingController(text: _phone.text);
     final emailCtl = TextEditingController(text: _email.text);
     final notesCtl = TextEditingController();
-    var slotPref = 'Farketmez';
+    const anytime = 'Farketmez';
+    const morning = 'Sabah';
+    const noon = 'Ogle';
+    const evening = 'Aksam';
+    var slotPref = anytime;
 
     await showDialog<void>(
       context: context,
       builder: (ctx) {
         return AlertDialog(
-          title: const Text('Bekleme listesi'),
+          title: Text(context.tr(
+            'salon.mobile.booking.waitlist.title',
+            'Bekleme listesi',
+          )),
           content: StatefulBuilder(
             builder: (context, setLocal) {
               return SingleChildScrollView(
@@ -398,33 +451,73 @@ class _BookingWizardPageState extends State<BookingWizardPage> {
                   children: [
                     TextField(
                         controller: nameCtl,
-                        decoration:
-                            const InputDecoration(labelText: 'Ad Soyad')),
+                        decoration: InputDecoration(
+                          labelText: context.tr(
+                            'salon.mobile.auth.fields.fullName',
+                            'Ad Soyad',
+                          ),
+                        )),
                     TextField(
                         controller: phoneCtl,
-                        decoration:
-                            const InputDecoration(labelText: 'Telefon')),
+                        decoration: InputDecoration(
+                          labelText: context.tr(
+                            'salon.mobile.auth.fields.phone',
+                            'Telefon',
+                          ),
+                        )),
                     TextField(
                         controller: emailCtl,
-                        decoration:
-                            const InputDecoration(labelText: 'E-posta')),
+                        decoration: InputDecoration(
+                          labelText: context.tr(
+                            'salon.mobile.auth.fields.email',
+                            'E-posta',
+                          ),
+                        )),
                     DropdownButtonFormField<String>(
                       initialValue: slotPref,
-                      items: const [
+                      items: [
                         DropdownMenuItem(
-                            value: 'Farketmez', child: Text('Farketmez')),
-                        DropdownMenuItem(value: 'Sabah', child: Text('Sabah')),
-                        DropdownMenuItem(value: 'Ogle', child: Text('Ogle')),
-                        DropdownMenuItem(value: 'Aksam', child: Text('Aksam')),
+                            value: anytime,
+                            child: Text(context.tr(
+                              'salon.mobile.booking.waitlist.anytime',
+                              'Fark etmez',
+                            ))),
+                        DropdownMenuItem(
+                            value: morning,
+                            child: Text(context.tr(
+                              'salon.mobile.booking.waitlist.morning',
+                              'Sabah',
+                            ))),
+                        DropdownMenuItem(
+                            value: noon,
+                            child: Text(context.tr(
+                              'salon.mobile.booking.waitlist.noon',
+                              'Öğle',
+                            ))),
+                        DropdownMenuItem(
+                            value: evening,
+                            child: Text(context.tr(
+                              'salon.mobile.booking.waitlist.evening',
+                              'Akşam',
+                            ))),
                       ],
                       onChanged: (v) =>
-                          setLocal(() => slotPref = v ?? 'Farketmez'),
-                      decoration:
-                          const InputDecoration(labelText: 'Saat tercihi'),
+                          setLocal(() => slotPref = v ?? anytime),
+                      decoration: InputDecoration(
+                        labelText: context.tr(
+                          'salon.mobile.booking.waitlist.timePreference',
+                          'Saat tercihi',
+                        ),
+                      ),
                     ),
                     TextField(
                         controller: notesCtl,
-                        decoration: const InputDecoration(labelText: 'Not')),
+                        decoration: InputDecoration(
+                          labelText: context.tr(
+                            'salon.mobile.booking.waitlist.note',
+                            'Not',
+                          ),
+                        )),
                   ],
                 ),
               );
@@ -433,13 +526,18 @@ class _BookingWizardPageState extends State<BookingWizardPage> {
           actions: [
             TextButton(
                 onPressed: () => Navigator.pop(ctx),
-                child: const Text('Iptal')),
+                child: Text(context.tr('salon.mobile.common.cancel', 'Vazgeç'))),
             FilledButton(
               onPressed: () async {
                 if (nameCtl.text.trim().isEmpty ||
                     phoneCtl.text.trim().isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Ad ve telefon zorunlu.')),
+                    SnackBar(
+                      content: Text(context.tr(
+                        'salon.mobile.booking.waitlist.namePhoneRequired',
+                        'Ad ve telefon zorunlu.',
+                      )),
+                    ),
                   );
                   return;
                 }
@@ -466,7 +564,13 @@ class _BookingWizardPageState extends State<BookingWizardPage> {
                   if (ctx.mounted) Navigator.pop(ctx);
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Listeye eklendi')));
+                      SnackBar(
+                        content: Text(context.tr(
+                          'salon.mobile.booking.waitlist.added',
+                          'Listeye eklendi',
+                        )),
+                      ),
+                    );
                   }
                 } catch (e) {
                   if (mounted) {
@@ -475,7 +579,7 @@ class _BookingWizardPageState extends State<BookingWizardPage> {
                   }
                 }
               },
-              child: const Text('Kaydet'),
+              child: Text(context.tr('salon.mobile.common.save', 'Kaydet')),
             ),
           ],
         );
@@ -493,13 +597,22 @@ class _BookingWizardPageState extends State<BookingWizardPage> {
     if (!profile.showBooking) {
       return Scaffold(
         appBar: AppBar(title: Text(profile.salonName)),
-        body: const Center(
-            child: Text('Bu salon online randevuyu kapali tutuyor.')),
+        body: Center(
+          child: Text(context.tr(
+            'salon.mobile.booking.disabled',
+            'Bu salon online randevuyu kapalı tutuyor.',
+          )),
+        ),
       );
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text('Randevu · ${profile.salonName}')),
+      appBar: AppBar(
+        title: Text(context.tr(
+          'salon.mobile.booking.titleWithSalon',
+          'Randevu · {salon}',
+        ).replaceFirst('{salon}', profile.salonName)),
+      ),
       body: Column(
         children: [
           Padding(
@@ -511,14 +624,19 @@ class _BookingWizardPageState extends State<BookingWizardPage> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Adım ${_step + 1} / 5',
+                      context.tr(
+                        'salon.mobile.booking.stepCounter',
+                        'Adım {current} / {total}',
+                      )
+                          .replaceFirst('{current}', '${_step + 1}')
+                          .replaceFirst('{total}', '5'),
                       style: Theme.of(context).textTheme.labelMedium?.copyWith(
                             color:
                                 Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                     ),
                     Text(
-                      _stepTitles[_step],
+                      _stepTitle(_step),
                       style: Theme.of(context)
                           .textTheme
                           .titleSmall
@@ -545,12 +663,15 @@ class _BookingWizardPageState extends State<BookingWizardPage> {
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
             child: Row(
               children: [
-                TextButton(onPressed: _back, child: const Text('Geri')),
+                TextButton(
+                  onPressed: _back,
+                  child: Text(context.tr('salon.mobile.common.back', 'Geri')),
+                ),
                 const Spacer(),
                 if (_step < 4)
                   FilledButton(
                       onPressed: _canNext() ? _next : null,
-                      child: const Text('Ileri')),
+                      child: Text(context.tr('salon.mobile.common.next', 'İleri'))),
                 if (_step == 4)
                   FilledButton(
                     onPressed: (_saving || !_canNext()) ? null : _confirm,
@@ -560,7 +681,7 @@ class _BookingWizardPageState extends State<BookingWizardPage> {
                             height: 22,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : const Text('Randevu al'),
+                        : Text(context.tr('salon.mobile.booking.bookNow', 'Randevu al')),
                   ),
               ],
             ),
@@ -604,7 +725,10 @@ class _BookingWizardPageState extends State<BookingWizardPage> {
                     elevation: 0,
                     child: ListTile(
                       title: Text(s.name),
-                      subtitle: Text('${s.durationMinutes} dk'),
+                      subtitle: Text(context.tr(
+                        'salon.mobile.common.minutes',
+                        '{count} dk',
+                      ).replaceFirst('{count}', '${s.durationMinutes}')),
                       trailing: Text(_money.format(s.price)),
                       onTap: () => setState(() {
                         _service = s;
@@ -643,8 +767,11 @@ class _BookingWizardPageState extends State<BookingWizardPage> {
               elevation: 0,
               child: ListTile(
                 leading: const Icon(Icons.shuffle),
-                title: const Text('Fark etmez'),
-                subtitle: const Text('Saat ekraninda musait personeli secin'),
+                title: Text(context.tr('salon.mobile.booking.staffFlexible', 'Fark etmez')),
+                subtitle: Text(context.tr(
+                  'salon.mobile.booking.staffFlexibleHint',
+                  'Saat ekranında müsait personeli seçin',
+                )),
                 onTap: _selectFlexibleStaff,
               ),
             ),
@@ -674,10 +801,13 @@ class _BookingWizardPageState extends State<BookingWizardPage> {
                 ),
               ),
             if (_staff.isEmpty)
-              const Padding(
-                padding: EdgeInsets.all(24),
+              Padding(
+                padding: const EdgeInsets.all(24),
                 child: Text(
-                  'Bu hizmet icin listelenen personel yok.',
+                  context.tr(
+                    'salon.mobile.booking.noStaffForService',
+                    'Bu hizmet için listelenen personel yok.',
+                  ),
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -689,7 +819,7 @@ class _BookingWizardPageState extends State<BookingWizardPage> {
           children: [
             ListTile(
               contentPadding: EdgeInsets.zero,
-              title: const Text('Tarih'),
+              title: Text(context.tr('salon.mobile.booking.date', 'Tarih')),
               subtitle: Text(DateFormat.yMMMMEEEEd('tr').format(_selectedDay)),
               trailing: IconButton(
                 icon: const Icon(Icons.calendar_month),
@@ -721,8 +851,10 @@ class _BookingWizardPageState extends State<BookingWizardPage> {
                 child: ListTile(
                   leading: Icon(Icons.storefront_outlined,
                       color: Theme.of(context).colorScheme.onSurfaceVariant),
-                  title:
-                      const Text('Salon bu gun kapali. Baska bir tarih secin.'),
+                  title: Text(context.tr(
+                    'salon.mobile.booking.dayClosed',
+                    'Salon bugün kapalı. Başka bir tarih seçin.',
+                  )),
                 ),
               ),
             if (!_slotsLoaded && !_dayClosed)
@@ -733,11 +865,17 @@ class _BookingWizardPageState extends State<BookingWizardPage> {
                 ),
               ),
             if (_slotsLoaded && !_dayClosed && _slots.isEmpty) ...[
-              const Text('Bu tarih icin musait slot yok.'),
+              Text(context.tr(
+                'salon.mobile.booking.noSlotForDate',
+                'Bu tarih için müsait slot yok.',
+              )),
               TextButton.icon(
                 onPressed: _waitlistDialog,
                 icon: const Icon(Icons.notifications),
-                label: const Text('Bekleme listesine yazil'),
+                label: Text(context.tr(
+                  'salon.mobile.booking.joinWaitlist',
+                  'Bekleme listesine yazıl',
+                )),
               ),
             ],
             if (_slotsLoaded && !_dayClosed && _slots.isNotEmpty) ...[
@@ -745,7 +883,10 @@ class _BookingWizardPageState extends State<BookingWizardPage> {
                 Padding(
                   padding: const EdgeInsets.only(bottom: 8),
                   child: Text(
-                    'Ayni saatte birden fazla personel musaitse saat ayri ayri gorunur; harf personeli belirtir.',
+                    context.tr(
+                      'salon.mobile.booking.flexibleStaffHint',
+                      'Aynı saatte birden fazla personel müsaitse saat ayrı ayrı görünür; harf personeli belirtir.',
+                    ),
                     style: TextStyle(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                         fontSize: 13),
@@ -860,29 +1001,39 @@ class _BookingWizardPageState extends State<BookingWizardPage> {
           children: [
             TextField(
               controller: _fullName,
-              decoration: const InputDecoration(
-                  labelText: 'Ad Soyad *', border: OutlineInputBorder()),
+              decoration: InputDecoration(
+                  labelText: context.tr(
+                    'salon.mobile.auth.fields.fullNameRequired',
+                    'Ad Soyad *',
+                  ),
+                  border: const OutlineInputBorder()),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: _phone,
               keyboardType: TextInputType.phone,
-              decoration: const InputDecoration(
-                  labelText: 'Telefon *', border: OutlineInputBorder()),
+              decoration: InputDecoration(
+                  labelText: context.tr(
+                    'salon.mobile.auth.fields.phoneRequired',
+                    'Telefon *',
+                  ),
+                  border: const OutlineInputBorder()),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: _email,
               keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(
-                  labelText: 'E-posta', border: OutlineInputBorder()),
+              decoration: InputDecoration(
+                  labelText: context.tr('salon.mobile.auth.fields.email', 'E-posta'),
+                  border: const OutlineInputBorder()),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: _notes,
               maxLines: 3,
-              decoration: const InputDecoration(
-                  labelText: 'Notlar', border: OutlineInputBorder()),
+              decoration: InputDecoration(
+                  labelText: context.tr('salon.mobile.booking.notes', 'Notlar'),
+                  border: const OutlineInputBorder()),
             ),
           ],
         );
@@ -893,31 +1044,66 @@ class _BookingWizardPageState extends State<BookingWizardPage> {
         return ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            Text('Hizmet: ${svc.name}',
-                style: Theme.of(context).textTheme.titleMedium),
             Text(
-                'Tarih: ${DateFormat.yMMMMEEEEd('tr').format(_selectedDay)} - ${slot.timeText}'),
-            Text('Personel: ${_confirmedStaffLabel()}'),
-            Text('Ucret: ${_money.format(svc.price)}'),
+              context.tr(
+                'salon.mobile.booking.summary.service',
+                'Hizmet: {service}',
+              ).replaceFirst('{service}', svc.name),
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            Text(
+              context.tr(
+                'salon.mobile.booking.summary.date',
+                'Tarih: {date} - {time}',
+              )
+                  .replaceFirst('{date}', DateFormat.yMMMMEEEEd('tr').format(_selectedDay))
+                  .replaceFirst('{time}', slot.timeText),
+            ),
+            Text(context.tr(
+              'salon.mobile.booking.summary.staff',
+              'Personel: {staff}',
+            ).replaceFirst('{staff}', _confirmedStaffLabel())),
+            Text(context.tr(
+              'salon.mobile.booking.summary.price',
+              'Ücret: {price}',
+            ).replaceFirst('{price}', _money.format(svc.price))),
             const Divider(height: 24),
-            Text('Misafir: ${_fullName.text} - ${_phone.text}'),
+            Text(context.tr(
+              'salon.mobile.booking.summary.guest',
+              'Misafir: {name} - {phone}',
+            )
+                .replaceFirst('{name}', _fullName.text)
+                .replaceFirst('{phone}', _phone.text)),
             if (pol != null && pol.hasPolicy) ...[
               const SizedBox(height: 16),
-              const Text('Politika',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
+              Text(
+                context.tr('salon.mobile.booking.summary.policy', 'Politika'),
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
               if (pol.requireDeposit && pol.depositAmount > 0)
-                Text('Depozito: ${_money.format(pol.depositAmount)}'),
+                Text(context.tr(
+                  'salon.mobile.booking.summary.deposit',
+                  'Depozito: {amount}',
+                ).replaceFirst('{amount}', _money.format(pol.depositAmount))),
               if (pol.freeCancellationHours > 0)
-                Text(
-                    'Ucretsiz iptal: ${pol.freeCancellationHours} saat oncesine kadar'),
+                Text(context.tr(
+                  'salon.mobile.booking.summary.freeCancellation',
+                  'Ücretsiz iptal: {hours} saat öncesine kadar',
+                ).replaceFirst('{hours}', '${pol.freeCancellationHours}')),
               if (pol.noShowFee > 0)
-                Text('Gelmeme: ${_money.format(pol.noShowFee)}'),
+                Text(context.tr(
+                  'salon.mobile.booking.summary.noShowFee',
+                  'Gelmeme: {amount}',
+                ).replaceFirst('{amount}', _money.format(pol.noShowFee))),
             ],
             if ((pol?.depositAmount ?? 0) > 0)
               Padding(
                 padding: const EdgeInsets.only(top: 12),
                 child: Text(
-                  'Depozitolu randevuda guvenli odeme sayfasina yonlendirileceksiniz.',
+                  context.tr(
+                    'salon.mobile.booking.summary.depositRedirect',
+                    'Depozitolu randevuda güvenli ödeme sayfasına yönlendirileceksiniz.',
+                  ),
                   style: TextStyle(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                       fontSize: 13),

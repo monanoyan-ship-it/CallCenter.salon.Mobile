@@ -1,4 +1,5 @@
 import 'package:callcenter_salon_mobil/services/corp_api.dart';
+import 'package:callcenter_salon_mobil/state/app_localization_state.dart';
 import 'package:callcenter_salon_mobil/util/api_errors.dart';
 import 'package:callcenter_salon_mobil/widgets/responsive_center.dart';
 import 'package:flutter/material.dart';
@@ -48,7 +49,12 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return Scaffold(
-      appBar: AppBar(title: const Text('Şifremi unuttum')),
+      appBar: AppBar(
+        title: Text(context.tr(
+          'salon.mobile.auth.forgot.title',
+          'Şifremi unuttum',
+        )),
+      ),
       body: ResponsiveCenter(
         child: ListView(
         padding: const EdgeInsets.all(20),
@@ -56,25 +62,34 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
           if (_sent) ...[
             Icon(Icons.mark_email_read_outlined, size: 56, color: scheme.primary),
             const SizedBox(height: 16),
-            const Text(
-              'Eğer bu email ile kayıtlı bir hesap varsa, sıfırlama linki içeren bir mail gönderildi.',
+            Text(
+              context.tr(
+                'salon.mobile.auth.forgot.sent',
+                'Eğer bu email ile kayıtlı bir hesap varsa, sıfırlama linki içeren bir mail gönderildi.',
+              ),
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 15, height: 1.4),
+              style: const TextStyle(fontSize: 15, height: 1.4),
             ),
             const SizedBox(height: 8),
             Text(
-              'Maili açıp linke tıklayın; sonra bu uygulamaya geri dönüp giriş yapın.',
+              context.tr(
+                'salon.mobile.auth.forgot.sentHint',
+                'Maili açıp linke tıklayın; sonra bu uygulamaya geri dönüp giriş yapın.',
+              ),
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant),
             ),
             const SizedBox(height: 24),
             FilledButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Tamam'),
+              child: Text(context.tr('salon.mobile.common.ok', 'Tamam')),
             ),
           ] else ...[
             Text(
-              'Hesabınızla ilişkili email adresini girin. Sıfırlama linki içeren bir mail göndereceğiz.',
+              context.tr(
+                'salon.mobile.auth.forgot.intro',
+                'Hesabınızla ilişkili email adresini girin. Sıfırlama linki içeren bir mail göndereceğiz.',
+              ),
               style: TextStyle(color: scheme.onSurfaceVariant),
             ),
             const SizedBox(height: 16),
@@ -86,11 +101,26 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                 autofillHints: const [AutofillHints.email],
                 textInputAction: TextInputAction.send,
                 onFieldSubmitted: (_) => _submit(),
-                decoration: const InputDecoration(labelText: 'E-posta'),
+                decoration: InputDecoration(
+                  labelText: context.tr(
+                    'salon.mobile.auth.fields.email',
+                    'E-posta',
+                  ),
+                ),
                 validator: (v) {
                   final s = (v ?? '').trim();
-                  if (s.isEmpty) return 'E-posta zorunlu';
-                  if (!s.contains('@')) return 'Geçerli bir e-posta girin';
+                  if (s.isEmpty) {
+                    return context.tr(
+                      'salon.mobile.auth.validation.emailRequired',
+                      'E-posta zorunlu',
+                    );
+                  }
+                  if (!s.contains('@')) {
+                    return context.tr(
+                      'salon.mobile.auth.validation.emailInvalid',
+                      'Geçerli bir e-posta girin',
+                    );
+                  }
                   return null;
                 },
               ),
@@ -106,7 +136,10 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                   ? const SizedBox(
                       width: 22, height: 22,
                       child: CircularProgressIndicator(strokeWidth: 2))
-                  : const Text('Sıfırlama maili gönder'),
+                  : Text(context.tr(
+                      'salon.mobile.auth.forgot.submit',
+                      'Sıfırlama maili gönder',
+                    )),
             ),
           ],
         ],

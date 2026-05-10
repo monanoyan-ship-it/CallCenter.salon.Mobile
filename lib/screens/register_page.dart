@@ -1,4 +1,5 @@
 import 'package:callcenter_salon_mobil/services/corp_api.dart';
+import 'package:callcenter_salon_mobil/state/app_localization_state.dart';
 import 'package:callcenter_salon_mobil/state/session_state.dart';
 import 'package:callcenter_salon_mobil/util/api_errors.dart';
 import 'package:flutter/material.dart';
@@ -54,36 +55,65 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Kayıt ol')),
+      appBar: AppBar(
+        title: Text(context.tr(
+          'salon.mobile.auth.register.title',
+          'Kayıt ol',
+        )),
+      ),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          const Text(
-            'Platform müşteri hesabı oluşturun (salon işletme paneli değildir).',
-            style: TextStyle(color: Colors.black54),
+          Text(
+            context.tr(
+              'salon.mobile.auth.register.notice',
+              'Platform müşteri hesabı oluşturun (salon işletme paneli değildir).',
+            ),
+            style: const TextStyle(color: Colors.black54),
           ),
           const SizedBox(height: 16),
           TextField(
             controller: _name,
-            decoration: const InputDecoration(labelText: 'Ad Soyad', border: OutlineInputBorder()),
+            decoration: InputDecoration(
+              labelText: context.tr(
+                'salon.mobile.auth.fields.fullName',
+                'Ad Soyad',
+              ),
+              border: const OutlineInputBorder(),
+            ),
           ),
           const SizedBox(height: 12),
           TextField(
             controller: _phone,
             keyboardType: TextInputType.phone,
-            decoration: const InputDecoration(labelText: 'Telefon', border: OutlineInputBorder()),
+            decoration: InputDecoration(
+              labelText: context.tr('salon.mobile.auth.fields.phone', 'Telefon'),
+              border: const OutlineInputBorder(),
+            ),
           ),
           const SizedBox(height: 12),
           TextField(
             controller: _email,
             keyboardType: TextInputType.emailAddress,
-            decoration: const InputDecoration(labelText: 'E-posta (isteğe bağlı)', border: OutlineInputBorder()),
+            decoration: InputDecoration(
+              labelText: context.tr(
+                'salon.mobile.auth.fields.emailOptional',
+                'E-posta (isteğe bağlı)',
+              ),
+              border: const OutlineInputBorder(),
+            ),
           ),
           const SizedBox(height: 12),
           TextField(
             controller: _pass,
             obscureText: true,
-            decoration: const InputDecoration(labelText: 'Şifre', border: OutlineInputBorder()),
+            decoration: InputDecoration(
+              labelText: context.tr(
+                'salon.mobile.auth.fields.password',
+                'Şifre',
+              ),
+              border: const OutlineInputBorder(),
+            ),
           ),
           if (_error != null) ...[
             const SizedBox(height: 12),
@@ -94,7 +124,10 @@ class _RegisterPageState extends State<RegisterPage> {
             onPressed: _busy ? null : _submit,
             child: _busy
                 ? const SizedBox(height: 22, width: 22, child: CircularProgressIndicator(strokeWidth: 2))
-                : const Text('Kayıt ol'),
+                : Text(context.tr(
+                    'salon.mobile.auth.register.button',
+                    'Kayıt ol',
+                  )),
           ),
         ],
       ),

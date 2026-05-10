@@ -1,5 +1,6 @@
 import 'package:callcenter_salon_mobil/screens/discover_page.dart';
 import 'package:callcenter_salon_mobil/screens/user_panel_page.dart';
+import 'package:callcenter_salon_mobil/state/app_localization_state.dart';
 import 'package:flutter/material.dart';
 
 /// Keşfet + Randevu aynı `/discover` ekranı (tek harita örneği); Hesabım ayrı.
@@ -46,21 +47,21 @@ class _MainShellState extends State<MainShell> {
           unselectedItemColor: scheme.onSurfaceVariant,
           selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
           unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 12),
-          items: const [
+          items: [
             BottomNavigationBarItem(
-              icon: Icon(Icons.map_outlined),
-              activeIcon: Icon(Icons.map),
-              label: 'Keşfet',
+              icon: const Icon(Icons.map_outlined),
+              activeIcon: const Icon(Icons.map),
+              label: context.tr('salon.mobile.nav.discover', 'Keşfet'),
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.event_note_outlined),
-              activeIcon: Icon(Icons.event_note),
-              label: 'Randevu',
+              icon: const Icon(Icons.event_note_outlined),
+              activeIcon: const Icon(Icons.event_note),
+              label: context.tr('salon.mobile.nav.booking', 'Randevu'),
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.account_circle_outlined),
-              activeIcon: Icon(Icons.account_circle),
-              label: 'Hesabım',
+              icon: const Icon(Icons.account_circle_outlined),
+              activeIcon: const Icon(Icons.account_circle),
+              label: context.tr('salon.mobile.nav.account', 'Hesabım'),
             ),
           ],
         ),

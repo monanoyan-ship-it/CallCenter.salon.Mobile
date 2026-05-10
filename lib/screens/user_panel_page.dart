@@ -6,8 +6,10 @@ import 'package:callcenter_salon_mobil/screens/receipt_view_page.dart';
 import 'package:callcenter_salon_mobil/screens/register_page.dart';
 import 'package:callcenter_salon_mobil/screens/salon_profile_page.dart';
 import 'package:callcenter_salon_mobil/services/corp_api.dart';
+import 'package:callcenter_salon_mobil/state/app_localization_state.dart';
 import 'package:callcenter_salon_mobil/state/session_state.dart';
 import 'package:callcenter_salon_mobil/util/api_errors.dart';
+import 'package:callcenter_salon_mobil/widgets/language_picker_button.dart';
 import 'package:callcenter_salon_mobil/widgets/platform_appointments_tab.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -23,30 +25,56 @@ class UserPanelPage extends StatelessWidget {
 
     if (!session.isLoggedIn) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Hesabım')),
+        appBar: AppBar(
+          title: Text(context.tr('salon.mobile.nav.account', 'Hesabım')),
+          actions: const [LanguagePickerButton()],
+        ),
         body: ListView(
           padding: const EdgeInsets.all(20),
           children: [
-            Text(AppAudience.platformCustomerTitle, style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              context.tr(
+                'salon.mobile.account.customerTitle',
+                AppAudience.platformCustomerTitle,
+              ),
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             const SizedBox(height: 8),
-            Text(AppAudience.platformCustomerDescription, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+            Text(
+              context.tr(
+                'salon.mobile.account.customerDescription',
+                AppAudience.platformCustomerDescription,
+              ),
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
             const SizedBox(height: 12),
             Card(
-              color: Theme.of(context).colorScheme.errorContainer.withOpacity(0.35),
-              child: const Padding(
-                padding: EdgeInsets.all(12),
-                child: Text(AppAudience.notSalonStaffNotice),
+              color: Theme.of(context).colorScheme.errorContainer.withValues(alpha: 0.35),
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Text(context.tr(
+                  'salon.mobile.account.notStaffNotice',
+                  AppAudience.notSalonStaffNotice,
+                )),
               ),
             ),
             const SizedBox(height: 24),
             FilledButton(
               onPressed: () => Navigator.push<void>(context, MaterialPageRoute(builder: (_) => const LoginPage())),
-              child: const Text('Giriş yap'),
+              child: Text(context.tr(
+                'salon.mobile.auth.login.button',
+                'Giriş yap',
+              )),
             ),
             const SizedBox(height: 12),
             OutlinedButton(
               onPressed: () => Navigator.push<void>(context, MaterialPageRoute(builder: (_) => const RegisterPage())),
-              child: const Text('Kayıt ol'),
+              child: Text(context.tr(
+                'salon.mobile.auth.register.button',
+                'Kayıt ol',
+              )),
             ),
           ],
         ),
@@ -57,23 +85,42 @@ class UserPanelPage extends StatelessWidget {
       length: 6,
       child: Scaffold(
         appBar: AppBar(
-          title: Text(session.user?.fullName ?? 'Hesabım'),
+          title: Text(session.user?.fullName ?? context.tr('salon.mobile.nav.account', 'Hesabım')),
           actions: [
+            const LanguagePickerButton(),
             IconButton(
               icon: const Icon(Icons.logout),
-              tooltip: 'Çıkış',
+              tooltip: context.tr('salon.mobile.account.logout', 'Çıkış'),
               onPressed: () => session.signOut(),
             ),
           ],
-          bottom: const TabBar(
+          bottom: TabBar(
             isScrollable: true,
             tabs: [
-              Tab(icon: Icon(Icons.storefront), text: 'Salonlarım'),
-              Tab(icon: Icon(Icons.calendar_month), text: 'Randevularım'),
-              Tab(icon: Icon(Icons.star_outline), text: 'Sadakat'),
-              Tab(icon: Icon(Icons.payments_outlined), text: 'Ödemeler'),
-              Tab(icon: Icon(Icons.person_outline), text: 'Profilim'),
-              Tab(icon: Icon(Icons.receipt_long), text: 'Fatura'),
+              Tab(
+                icon: const Icon(Icons.storefront),
+                text: context.tr('salon.mobile.account.tabs.salons', 'Salonlarım'),
+              ),
+              Tab(
+                icon: const Icon(Icons.calendar_month),
+                text: context.tr('salon.mobile.account.tabs.appointments', 'Randevularım'),
+              ),
+              Tab(
+                icon: const Icon(Icons.star_outline),
+                text: context.tr('salon.mobile.account.tabs.loyalty', 'Sadakat'),
+              ),
+              Tab(
+                icon: const Icon(Icons.payments_outlined),
+                text: context.tr('salon.mobile.account.tabs.payments', 'Ödemeler'),
+              ),
+              Tab(
+                icon: const Icon(Icons.person_outline),
+                text: context.tr('salon.mobile.account.tabs.profile', 'Profilim'),
+              ),
+              Tab(
+                icon: const Icon(Icons.receipt_long),
+                text: context.tr('salon.mobile.account.tabs.billing', 'Fatura'),
+              ),
             ],
           ),
         ),
@@ -124,7 +171,12 @@ class _MySalonsTabState extends State<_MySalonsTab> {
         future: _future,
         builder: (context, snap) {
           if (snap.connectionState != ConnectionState.done) {
-            return ListView(children: [const SizedBox(height: 120), Center(child: CircularProgressIndicator())]);
+            return ListView(
+              children: [
+                const SizedBox(height: 120),
+                const Center(child: CircularProgressIndicator()),
+              ],
+            );
           }
           if (snap.hasError) {
             return ListView(
@@ -137,10 +189,13 @@ class _MySalonsTabState extends State<_MySalonsTab> {
             return ListView(
               physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.all(24),
-              children: const [
-                Icon(Icons.storefront, size: 48, color: Colors.black26),
-                SizedBox(height: 12),
-                Text('Henüz bir salona üye değilsiniz. Keşfet sekmesinden salon bulabilirsiniz.'),
+              children: [
+                const Icon(Icons.storefront, size: 48, color: Colors.black26),
+                const SizedBox(height: 12),
+                Text(context.tr(
+                  'salon.mobile.account.salons.empty',
+                  'Henüz bir salona üye değilsiniz. Keşfet sekmesinden salon bulabilirsiniz.',
+                )),
               ],
             );
           }
@@ -155,10 +210,12 @@ class _MySalonsTabState extends State<_MySalonsTab> {
                 child: ListTile(
                   leading: s.logoUrl != null ? CircleAvatar(backgroundImage: NetworkImage(s.logoUrl!)) : const CircleAvatar(child: Icon(Icons.store)),
                   title: Text(s.salonName),
-                  subtitle: Text(loc.isEmpty ? 'Üye' : loc),
+                  subtitle: Text(loc.isEmpty
+                      ? context.tr('salon.mobile.account.salons.member', 'Üye')
+                      : loc),
                   trailing: IconButton(
                     icon: Icon(s.isFavorite ? Icons.star : Icons.star_border),
-                    tooltip: 'Favori',
+                    tooltip: context.tr('salon.mobile.account.salons.favorite', 'Favori'),
                     onPressed: () async {
                       try {
                         await context.read<CorpApiClient>().toggleSalonFavorite(s.customerId);
@@ -229,10 +286,11 @@ Future<String?> _resolveSlug(BuildContext context, PlatformJoinedSalon s) async 
 
   if (context.mounted) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
+      SnackBar(
+        content: Text(context.tr(
+          'salon.mobile.account.salons.slugNotFound',
           'Salon kısa adresi bulunamadı. Randevu sekmesinden slug ile veya Keşfet’ten seçerek deneyin.',
-        ),
+        )),
       ),
     );
   }
@@ -282,7 +340,10 @@ class _LoyaltyTabState extends State<_LoyaltyTab> {
                 const SizedBox(height: 12),
                 Center(
                   child: Text(
-                    'Sadakat bilgileri yükleniyor…',
+                    context.tr(
+                      'salon.mobile.account.loyalty.loading',
+                      'Sadakat bilgileri yükleniyor…',
+                    ),
                     style: TextStyle(
                         fontSize: 12, color: scheme.onSurfaceVariant),
                   ),
@@ -306,7 +367,7 @@ class _LoyaltyTabState extends State<_LoyaltyTab> {
                   child: FilledButton.icon(
                     onPressed: _reload,
                     icon: const Icon(Icons.refresh),
-                    label: const Text('Tekrar dene'),
+                    label: Text(context.tr('salon.mobile.common.retry', 'Tekrar dene')),
                   ),
                 ),
               ],
@@ -317,7 +378,12 @@ class _LoyaltyTabState extends State<_LoyaltyTab> {
             return ListView(
               physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.all(24),
-              children: const [Text('Sadakat bilgisi bulunamadı.')],
+              children: [
+                Text(context.tr(
+                  'salon.mobile.account.loyalty.empty',
+                  'Sadakat bilgisi bulunamadı.',
+                )),
+              ],
             );
           }
           return ListView.builder(
@@ -333,14 +399,39 @@ class _LoyaltyTabState extends State<_LoyaltyTab> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(r.salonName, style: Theme.of(context).textTheme.titleMedium),
-                      Text('Puan: ${r.currentPoints.toStringAsFixed(0)} (toplam ${r.totalEarned.toStringAsFixed(0)})'),
+                      Text(context.tr(
+                        'salon.mobile.account.loyalty.pointsLine',
+                        'Puan: {current} (toplam {total})',
+                      )
+                          .replaceFirst('{current}', r.currentPoints.toStringAsFixed(0))
+                          .replaceFirst('{total}', r.totalEarned.toStringAsFixed(0))),
                       if (r.membershipPlanName != null && r.membershipPlanName!.isNotEmpty)
-                        Text('Üyelik: ${r.membershipPlanName}'),
+                        Text(context.tr(
+                          'salon.mobile.account.loyalty.membershipLine',
+                          'Üyelik: {plan}',
+                        ).replaceFirst('{plan}', r.membershipPlanName!)),
                       if (r.giftCards.isNotEmpty) ...[
                         const SizedBox(height: 8),
-                        const Text('Hediye kartları', style: TextStyle(fontWeight: FontWeight.w600)),
+                        Text(
+                          context.tr(
+                            'salon.mobile.account.loyalty.giftCards',
+                            'Hediye kartları',
+                          ),
+                          style: const TextStyle(fontWeight: FontWeight.w600),
+                        ),
                         for (final g in r.giftCards)
-                          Text('${g.code} — ${g.remainingBalance.toStringAsFixed(2)} TL (${g.isActive ? 'aktif' : 'pasif'})'),
+                          Text(context.tr(
+                            'salon.mobile.account.loyalty.giftCardLine',
+                            '{code} — {amount} TL ({status})',
+                          )
+                              .replaceFirst('{code}', g.code)
+                              .replaceFirst('{amount}', g.remainingBalance.toStringAsFixed(2))
+                              .replaceFirst(
+                                '{status}',
+                                g.isActive
+                                    ? context.tr('salon.mobile.common.active', 'aktif')
+                                    : context.tr('salon.mobile.common.passive', 'pasif'),
+                              )),
                       ],
                     ],
                   ),
@@ -385,7 +476,12 @@ class _PaymentsTabState extends State<_PaymentsTab> {
   Future<void> _openReceipt(PaymentHistoryEntry e) async {
     if (!e.canDownloadReceipt) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Bu kayıt için makbuz mevcut değil.')),
+        SnackBar(
+          content: Text(context.tr(
+            'salon.mobile.account.payments.receiptUnavailable',
+            'Bu kayıt için makbuz mevcut değil.',
+          )),
+        ),
       );
       return;
     }
@@ -394,7 +490,12 @@ class _PaymentsTabState extends State<_PaymentsTab> {
       if (!mounted) return;
       if (html.trim().isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Makbuz boş döndü.')),
+          SnackBar(
+            content: Text(context.tr(
+              'salon.mobile.account.payments.receiptEmpty',
+              'Makbuz boş döndü.',
+            )),
+          ),
         );
         return;
       }
@@ -403,7 +504,10 @@ class _PaymentsTabState extends State<_PaymentsTab> {
         MaterialPageRoute(
           builder: (_) => ReceiptViewPage(
             htmlContent: html,
-            title: 'Makbuz · ${e.paymentType}',
+            title: context.tr(
+              'salon.mobile.account.payments.receiptTitle',
+              'Makbuz · {type}',
+            ).replaceFirst('{type}', e.paymentType),
           ),
         ),
       );
@@ -448,7 +552,13 @@ class _PaymentsTabState extends State<_PaymentsTab> {
               children: [
                 Icon(Icons.payments_outlined, size: 48, color: scheme.onSurfaceVariant),
                 const SizedBox(height: 12),
-                const Text('Henüz ödeme kaydınız yok.', textAlign: TextAlign.center),
+                Text(
+                  context.tr(
+                    'salon.mobile.account.payments.empty',
+                    'Henüz ödeme kaydınız yok.',
+                  ),
+                  textAlign: TextAlign.center,
+                ),
               ],
             );
           }
@@ -543,7 +653,10 @@ class _PaymentsTabState extends State<_PaymentsTab> {
                                         size: 14, color: scheme.onSurfaceVariant),
                                     const SizedBox(width: 4),
                                     Text(
-                                      'Makbuz',
+                                      context.tr(
+                                        'salon.mobile.account.payments.receipt',
+                                        'Makbuz',
+                                      ),
                                       style: TextStyle(
                                           fontSize: 11, color: scheme.onSurfaceVariant),
                                     ),
@@ -618,12 +731,17 @@ class _ProfileTabState extends State<_ProfileTab> {
   }
 
   Future<void> _saveProfile() async {
+    final api = context.read<CorpApiClient>();
+    final session = context.read<SessionState>();
+    final savedMessage = context.trRead(
+      'salon.mobile.account.profile.saved',
+      'Profil güncellendi',
+    );
     try {
-      await context.read<CorpApiClient>().updatePlatformProfile(
+      await api.updatePlatformProfile(
             fullName: _name.text.trim(),
             email: _email.text.trim().isEmpty ? null : _email.text.trim(),
           );
-      final session = context.read<SessionState>();
       await session.replaceUser(
         PlatformUser(
           fullName: _name.text.trim(),
@@ -631,7 +749,13 @@ class _ProfileTabState extends State<_ProfileTab> {
           email: _email.text.trim().isEmpty ? null : _email.text.trim(),
         ),
       );
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Profil güncellendi')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(savedMessage),
+          ),
+        );
+      }
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(dioErrorMessage(e))));
     }
@@ -639,7 +763,14 @@ class _ProfileTabState extends State<_ProfileTab> {
 
   Future<void> _changePwd() async {
     if (_pwdNew.text != _pwdNew2.text) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Yeni şifreler eşleşmiyor')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(context.tr(
+            'salon.mobile.account.profile.passwordMismatch',
+            'Yeni şifreler eşleşmiyor',
+          )),
+        ),
+      );
       return;
     }
     try {
@@ -650,7 +781,16 @@ class _ProfileTabState extends State<_ProfileTab> {
       _pwdCur.clear();
       _pwdNew.clear();
       _pwdNew2.clear();
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Şifre güncellendi')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.tr(
+              'salon.mobile.account.profile.passwordSaved',
+              'Şifre güncellendi',
+            )),
+          ),
+        );
+      }
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(dioErrorMessage(e))));
     }
@@ -663,36 +803,75 @@ class _ProfileTabState extends State<_ProfileTab> {
       padding: const EdgeInsets.all(16),
       children: [
         if (_error != null) Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
-        TextField(controller: _name, decoration: const InputDecoration(labelText: 'Ad Soyad', border: OutlineInputBorder())),
+        TextField(
+          controller: _name,
+          decoration: InputDecoration(
+            labelText: context.tr('salon.mobile.auth.fields.fullName', 'Ad Soyad'),
+            border: const OutlineInputBorder(),
+          ),
+        ),
         const SizedBox(height: 12),
         TextField(
           controller: _email,
           keyboardType: TextInputType.emailAddress,
-          decoration: const InputDecoration(labelText: 'E-posta', border: OutlineInputBorder()),
+          decoration: InputDecoration(
+            labelText: context.tr('salon.mobile.auth.fields.email', 'E-posta'),
+            border: const OutlineInputBorder(),
+          ),
         ),
         const SizedBox(height: 12),
-        FilledButton(onPressed: _saveProfile, child: const Text('Profili kaydet')),
+        FilledButton(
+          onPressed: _saveProfile,
+          child: Text(context.tr(
+            'salon.mobile.account.profile.save',
+            'Profili kaydet',
+          )),
+        ),
         const Divider(height: 32),
-        const Text('Şifre değiştir', style: TextStyle(fontWeight: FontWeight.bold)),
+        Text(
+          context.tr('salon.mobile.account.profile.changePassword', 'Şifre değiştir'),
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
         TextField(
           controller: _pwdCur,
           obscureText: true,
-          decoration: const InputDecoration(labelText: 'Mevcut şifre', border: OutlineInputBorder()),
+          decoration: InputDecoration(
+            labelText: context.tr(
+              'salon.mobile.account.profile.currentPassword',
+              'Mevcut şifre',
+            ),
+            border: const OutlineInputBorder(),
+          ),
         ),
         const SizedBox(height: 8),
         TextField(
           controller: _pwdNew,
           obscureText: true,
-          decoration: const InputDecoration(labelText: 'Yeni şifre', border: OutlineInputBorder()),
+          decoration: InputDecoration(
+            labelText: context.tr('salon.mobile.account.profile.newPassword', 'Yeni şifre'),
+            border: const OutlineInputBorder(),
+          ),
         ),
         const SizedBox(height: 8),
         TextField(
           controller: _pwdNew2,
           obscureText: true,
-          decoration: const InputDecoration(labelText: 'Yeni şifre (tekrar)', border: OutlineInputBorder()),
+          decoration: InputDecoration(
+            labelText: context.tr(
+              'salon.mobile.account.profile.newPasswordAgain',
+              'Yeni şifre (tekrar)',
+            ),
+            border: const OutlineInputBorder(),
+          ),
         ),
         const SizedBox(height: 12),
-        OutlinedButton(onPressed: _changePwd, child: const Text('Şifreyi güncelle')),
+        OutlinedButton(
+          onPressed: _changePwd,
+          child: Text(context.tr(
+            'salon.mobile.account.profile.updatePassword',
+            'Şifreyi güncelle',
+          )),
+        ),
       ],
     );
   }
@@ -768,7 +947,16 @@ class _BillingTabState extends State<_BillingTab> {
         'billingDistrict': _district.text.trim().isEmpty ? null : _district.text.trim(),
         'billingPostalCode': _postal.text.trim().isEmpty ? null : _postal.text.trim(),
       });
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Fatura bilgileri kaydedildi')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.tr(
+              'salon.mobile.account.billing.saved',
+              'Fatura bilgileri kaydedildi',
+            )),
+          ),
+        );
+      }
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(dioErrorMessage(e))));
     }
@@ -781,25 +969,37 @@ class _BillingTabState extends State<_BillingTab> {
       padding: const EdgeInsets.all(16),
       children: [
         DropdownButtonFormField<int>(
-          value: _billingType,
-          decoration: const InputDecoration(labelText: 'Fatura tipi', border: OutlineInputBorder()),
-          items: const [
-            DropdownMenuItem(value: 1, child: Text('Bireysel')),
-            DropdownMenuItem(value: 2, child: Text('Kurumsal')),
+          initialValue: _billingType,
+          decoration: InputDecoration(
+            labelText: context.tr('salon.mobile.account.billing.type', 'Fatura tipi'),
+            border: const OutlineInputBorder(),
+          ),
+          items: [
+            DropdownMenuItem(
+              value: 1,
+              child: Text(context.tr('salon.mobile.account.billing.individual', 'Bireysel')),
+            ),
+            DropdownMenuItem(
+              value: 2,
+              child: Text(context.tr('salon.mobile.account.billing.corporate', 'Kurumsal')),
+            ),
           ],
           onChanged: (v) => setState(() => _billingType = v ?? 1),
         ),
         const SizedBox(height: 12),
-        TextField(controller: _fullName, decoration: const InputDecoration(labelText: 'Ad Soyad / Ünvan', border: OutlineInputBorder())),
-        TextField(controller: _company, decoration: const InputDecoration(labelText: 'Şirket adı', border: OutlineInputBorder())),
-        TextField(controller: _taxOffice, decoration: const InputDecoration(labelText: 'Vergi dairesi', border: OutlineInputBorder())),
-        TextField(controller: _taxNo, decoration: const InputDecoration(labelText: 'Vergi no', border: OutlineInputBorder())),
-        TextField(controller: _address, decoration: const InputDecoration(labelText: 'Adres', border: OutlineInputBorder())),
-        TextField(controller: _city, decoration: const InputDecoration(labelText: 'Şehir', border: OutlineInputBorder())),
-        TextField(controller: _district, decoration: const InputDecoration(labelText: 'İlçe', border: OutlineInputBorder())),
-        TextField(controller: _postal, decoration: const InputDecoration(labelText: 'Posta kodu', border: OutlineInputBorder())),
+        TextField(controller: _fullName, decoration: InputDecoration(labelText: context.tr('salon.mobile.account.billing.fullNameTitle', 'Ad Soyad / Ünvan'), border: const OutlineInputBorder())),
+        TextField(controller: _company, decoration: InputDecoration(labelText: context.tr('salon.mobile.account.billing.company', 'Şirket adı'), border: const OutlineInputBorder())),
+        TextField(controller: _taxOffice, decoration: InputDecoration(labelText: context.tr('salon.mobile.account.billing.taxOffice', 'Vergi dairesi'), border: const OutlineInputBorder())),
+        TextField(controller: _taxNo, decoration: InputDecoration(labelText: context.tr('salon.mobile.account.billing.taxNo', 'Vergi no'), border: const OutlineInputBorder())),
+        TextField(controller: _address, decoration: InputDecoration(labelText: context.tr('salon.mobile.account.billing.address', 'Adres'), border: const OutlineInputBorder())),
+        TextField(controller: _city, decoration: InputDecoration(labelText: context.tr('salon.mobile.account.billing.city', 'Şehir'), border: const OutlineInputBorder())),
+        TextField(controller: _district, decoration: InputDecoration(labelText: context.tr('salon.mobile.account.billing.district', 'İlçe'), border: const OutlineInputBorder())),
+        TextField(controller: _postal, decoration: InputDecoration(labelText: context.tr('salon.mobile.account.billing.postalCode', 'Posta kodu'), border: const OutlineInputBorder())),
         const SizedBox(height: 16),
-        FilledButton(onPressed: _save, child: const Text('Kaydet')),
+        FilledButton(
+          onPressed: _save,
+          child: Text(context.tr('salon.mobile.common.save', 'Kaydet')),
+        ),
       ],
     );
   }

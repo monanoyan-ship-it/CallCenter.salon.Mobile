@@ -1,8 +1,10 @@
 import 'package:callcenter_salon_mobil/screens/forgot_password_page.dart';
 import 'package:callcenter_salon_mobil/screens/register_page.dart';
 import 'package:callcenter_salon_mobil/services/corp_api.dart';
+import 'package:callcenter_salon_mobil/state/app_localization_state.dart';
 import 'package:callcenter_salon_mobil/state/session_state.dart';
 import 'package:callcenter_salon_mobil/util/api_errors.dart';
+import 'package:callcenter_salon_mobil/widgets/language_picker_button.dart';
 import 'package:callcenter_salon_mobil/widgets/responsive_center.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -64,7 +66,10 @@ class _LoginPageState extends State<LoginPage> {
   Future<void> _resendVerification() async {
     final email = _verifyEmail.text.trim();
     if (email.isEmpty || !email.contains('@')) {
-      setState(() => _error = 'Doğrulama maili için hesap email adresinizi girin.');
+      setState(() => _error = context.trRead(
+            'salon.mobile.auth.login.emailRequired',
+            'Doğrulama maili için hesap email adresinizi girin.',
+          ));
       return;
     }
     setState(() => _resending = true);
@@ -72,7 +77,12 @@ class _LoginPageState extends State<LoginPage> {
       await context.read<CorpApiClient>().platformSendVerificationEmail(email: email);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Doğrulama maili tekrar gönderildi.')),
+        SnackBar(
+          content: Text(context.trRead(
+            'salon.mobile.auth.login.verificationSent',
+            'Doğrulama maili tekrar gönderildi.',
+          )),
+        ),
       );
     } catch (e) {
       if (!mounted) return;
@@ -87,31 +97,37 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Giriş')),
+      appBar: AppBar(
+        title: Text(context.tr('salon.mobile.auth.login.title', 'Giriş')),
+        actions: const [LanguagePickerButton()],
+      ),
       body: ResponsiveCenter(
         child: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          const Text(
-            'Salon müşterisi (platform) hesabı — işletme/personel girişi değildir. Telefon ve şifre web ile aynıdır.',
-            style: TextStyle(color: Colors.black54),
+          Text(
+            context.tr(
+              'salon.mobile.auth.login.customerNotice',
+              'Salon müşterisi (platform) hesabı — işletme/personel girişi değildir. Telefon ve şifre web ile aynıdır.',
+            ),
+            style: const TextStyle(color: Colors.black54),
           ),
           const SizedBox(height: 16),
           TextField(
             controller: _phone,
             keyboardType: TextInputType.phone,
-            decoration: const InputDecoration(
-              labelText: 'Telefon',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: context.tr('salon.mobile.auth.fields.phone', 'Telefon'),
+              border: const OutlineInputBorder(),
             ),
           ),
           const SizedBox(height: 12),
           TextField(
             controller: _pass,
             obscureText: true,
-            decoration: const InputDecoration(
-              labelText: 'Şifre',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: context.tr('salon.mobile.auth.fields.password', 'Şifre'),
+              border: const OutlineInputBorder(),
             ),
           ),
           if (_error != null) ...[
@@ -135,8 +151,11 @@ class _LoginPageState extends State<LoginPage> {
                     TextField(
                       controller: _verifyEmail,
                       keyboardType: TextInputType.emailAddress,
-                      decoration: const InputDecoration(
-                        labelText: 'Hesap email adresi',
+                      decoration: InputDecoration(
+                        labelText: context.tr(
+                          'salon.mobile.auth.login.accountEmail',
+                          'Hesap email adresi',
+                        ),
                         isDense: true,
                       ),
                     ),
@@ -148,7 +167,10 @@ class _LoginPageState extends State<LoginPage> {
                               width: 16, height: 16,
                               child: CircularProgressIndicator(strokeWidth: 2))
                           : const Icon(Icons.outgoing_mail),
-                      label: const Text('Doğrulama mailini tekrar gönder'),
+                      label: Text(context.tr(
+                        'salon.mobile.auth.login.resendVerification',
+                        'Doğrulama mailini tekrar gönder',
+                      )),
                     ),
                   ],
                 ),
@@ -158,7 +180,16 @@ class _LoginPageState extends State<LoginPage> {
           const SizedBox(height: 20),
           FilledButton(
             onPressed: _busy ? null : _submit,
-            child: _busy ? const SizedBox(height: 22, width: 22, child: CircularProgressIndicator(strokeWidth: 2)) : const Text('Giriş yap'),
+            child: _busy
+                ? const SizedBox(
+                    height: 22,
+                    width: 22,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : Text(context.tr(
+                    'salon.mobile.auth.login.button',
+                    'Giriş yap',
+                  )),
           ),
           TextButton(
             onPressed: _busy
@@ -167,7 +198,10 @@ class _LoginPageState extends State<LoginPage> {
                       context,
                       MaterialPageRoute(builder: (_) => const ForgotPasswordPage()),
                     ),
-            child: const Text('Şifremi unuttum'),
+            child: Text(context.tr(
+              'salon.mobile.auth.login.forgotPassword',
+              'Şifremi unuttum',
+            )),
           ),
           TextButton(
             onPressed: _busy
@@ -181,7 +215,10 @@ class _LoginPageState extends State<LoginPage> {
                     if (!mounted) return;
                     if (ok == true) nav.pop(true);
                   },
-            child: const Text('Hesabım yok — kayıt ol'),
+            child: Text(context.tr(
+              'salon.mobile.auth.login.registerCta',
+              'Hesabım yok — kayıt ol',
+            )),
           ),
         ],
       ),

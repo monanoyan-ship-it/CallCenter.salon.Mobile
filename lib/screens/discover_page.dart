@@ -29,7 +29,7 @@ class DiscoverPage extends StatefulWidget {
 
 class _DiscoverPageState extends State<DiscoverPage> {
   static const double _maxRadiusKm = 5;
-  static final LatLng _turkeyCenter = LatLng(39.9, 32.8);
+  static const LatLng _turkeyCenter = LatLng(39.9, 32.8);
 
   final _search = TextEditingController();
   final _slugCtl = TextEditingController();
@@ -495,21 +495,21 @@ class _DiscoverPageState extends State<DiscoverPage> {
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Icon(Icons.content_cut, color: headerMuted, size: 22),
+                            const Icon(Icons.content_cut, color: headerMuted, size: 22),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text.rich(
+                                  const Text.rich(
                                     TextSpan(
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontSize: 17,
                                         fontWeight: FontWeight.bold,
                                         color: Colors.white,
                                       ),
                                       children: [
-                                        const TextSpan(text: 'CorpLynk '),
+                                        TextSpan(text: 'CorpLynk '),
                                         TextSpan(text: 'Salon', style: TextStyle(color: headerMuted)),
                                       ],
                                     ),
@@ -609,11 +609,11 @@ class _DiscoverPageState extends State<DiscoverPage> {
                           color: Colors.white.withValues(alpha: 0.85),
                           borderRadius: BorderRadius.circular(6),
                         ),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        child: const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           child: Text(
                             AppConfig.mapTileAttribution,
-                            style: const TextStyle(fontSize: 10, color: Colors.black54),
+                            style: TextStyle(fontSize: 10, color: Colors.black54),
                           ),
                         ),
                       ),

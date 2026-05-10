@@ -3,6 +3,7 @@ import 'package:callcenter_salon_mobil/screens/main_shell.dart';
 import 'package:callcenter_salon_mobil/services/corp_api.dart';
 import 'package:callcenter_salon_mobil/services/deep_link_handler.dart';
 import 'package:callcenter_salon_mobil/services/session_store.dart';
+import 'package:callcenter_salon_mobil/state/app_localization_state.dart';
 import 'package:callcenter_salon_mobil/state/session_state.dart';
 import 'package:callcenter_salon_mobil/theme/app_theme.dart';
 import 'package:flutter/foundation.dart';
@@ -65,23 +66,33 @@ class SalonBookingApp extends StatelessWidget {
             },
           ),
         ),
+        ChangeNotifierProxyProvider<CorpApiClient, AppLocalizationState>(
+          create: (_) => AppLocalizationState(),
+          update: (_, api, state) {
+            final localization = state ?? AppLocalizationState();
+            localization.bindApi(api);
+            return localization;
+          },
+        ),
       ],
-      child: MaterialApp(
-        title: 'CorpLynk Salon',
-        debugShowCheckedModeBanner: false,
-        navigatorKey: _rootNavigatorKey,
-        theme: AppTheme.light(),
-        darkTheme: AppTheme.dark(),
-        themeMode: ThemeMode.system,
+      child: Consumer<AppLocalizationState>(
+        builder: (_, i18n, __) => MaterialApp(
+          title: i18n.t('salon.mobile.app.title', 'CorpLynk Salon'),
+          debugShowCheckedModeBanner: false,
+          navigatorKey: _rootNavigatorKey,
+          theme: AppTheme.light(),
+          darkTheme: AppTheme.dark(),
+          themeMode: ThemeMode.system,
         // Türkçe DatePicker / TimePicker / Material varsayılanları için.
-        locale: const Locale('tr', 'TR'),
-        supportedLocales: const [Locale('tr', 'TR'), Locale('en', 'US')],
-        localizationsDelegates: const [
-          GlobalMaterialLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-        ],
-        home: const _BootstrapShell(),
+          locale: i18n.locale,
+          supportedLocales: i18n.supportedLocales,
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+          ],
+          home: const _BootstrapShell(),
+        ),
       ),
     );
   }

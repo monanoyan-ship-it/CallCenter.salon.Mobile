@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:callcenter_salon_mobil/config/app_config.dart';
 import 'package:callcenter_salon_mobil/models/booking_models.dart';
+import 'package:callcenter_salon_mobil/models/localization_models.dart';
 import 'package:callcenter_salon_mobil/models/platform_models.dart';
 import 'package:callcenter_salon_mobil/util/api_errors.dart';
 import 'package:dio/dio.dart';
@@ -82,6 +83,71 @@ class CorpApiClient {
       }
       rethrow;
     }
+  }
+
+  Future<LanguageResponse> fetchTranslationLanguages({
+    String? ifNoneMatch,
+  }) async {
+    final res = await _dio.get<List<dynamic>>(
+      '/api/translations/languages',
+      options: _cacheAwareOptions(ifNoneMatch),
+    );
+
+    final etag = res.headers.value('etag');
+    if (res.statusCode == 304) {
+      return LanguageResponse(
+        notModified: true,
+        etag: etag ?? ifNoneMatch,
+        languages: const [],
+      );
+    }
+
+    final raw = res.data ?? [];
+    return LanguageResponse(
+      notModified: false,
+      etag: etag,
+      languages: raw
+          .map((e) => AppLanguage.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+
+  Future<TranslationResponse> fetchTranslations(
+    String languageCode, {
+    String module = 'salon',
+    String? ifNoneMatch,
+  }) async {
+    final res = await _dio.get<Map<String, dynamic>>(
+      '/api/translations/$languageCode',
+      queryParameters: {'module': module},
+      options: _cacheAwareOptions(ifNoneMatch),
+    );
+
+    final etag = res.headers.value('etag');
+    if (res.statusCode == 304) {
+      return TranslationResponse(
+        notModified: true,
+        etag: etag ?? ifNoneMatch,
+        translations: const {},
+      );
+    }
+
+    final data = res.data ?? {};
+    return TranslationResponse(
+      notModified: false,
+      etag: etag,
+      translations: data.map((key, value) => MapEntry(key, value.toString())),
+    );
+  }
+
+  Options _cacheAwareOptions(String? ifNoneMatch) {
+    return Options(
+      headers: {
+        if (ifNoneMatch != null && ifNoneMatch.isNotEmpty)
+          'If-None-Match': ifNoneMatch,
+      },
+      validateStatus: (status) => status != null && status < 400,
+    );
   }
 
   Future<SalonProfile> fetchSalonProfile(String slug) async {

@@ -1,4 +1,5 @@
 import 'package:callcenter_salon_mobil/config/app_config.dart';
+import 'package:callcenter_salon_mobil/state/app_localization_state.dart';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -49,7 +50,9 @@ class _PaymentWebViewPageState extends State<PaymentWebViewPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Ödeme')),
+      appBar: AppBar(
+        title: Text(context.tr('salon.mobile.payment.title', 'Ödeme')),
+      ),
       body: Stack(
         children: [
           WebViewWidget(controller: _controller),

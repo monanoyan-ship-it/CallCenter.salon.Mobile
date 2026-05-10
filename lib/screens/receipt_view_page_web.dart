@@ -4,13 +4,14 @@ import 'dart:html' as html;
 import 'dart:ui_web' as ui_web;
 
 import 'package:callcenter_salon_mobil/config/app_config.dart';
+import 'package:callcenter_salon_mobil/state/app_localization_state.dart';
 import 'package:flutter/material.dart';
 
 class ReceiptViewPage extends StatefulWidget {
-  const ReceiptViewPage({super.key, required this.htmlContent, this.title = 'Makbuz'});
+  const ReceiptViewPage({super.key, required this.htmlContent, this.title});
 
   final String htmlContent;
-  final String title;
+  final String? title;
 
   @override
   State<ReceiptViewPage> createState() => _ReceiptViewPageState();
@@ -60,7 +61,10 @@ $body
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.title)),
+      appBar: AppBar(
+        title: Text(widget.title ??
+            context.tr('salon.mobile.account.payments.receipt', 'Makbuz')),
+      ),
       body: Stack(
         children: [
           HtmlElementView(viewType: _viewType),

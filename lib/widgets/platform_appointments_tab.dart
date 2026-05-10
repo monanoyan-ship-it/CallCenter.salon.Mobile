@@ -245,7 +245,7 @@ class _StatusBadge extends StatelessWidget {
       case 4:
         return context.tr('salon.mobile.appointments.status.cancelled', 'İptal');
       default:
-        return appointment.statusLabel;
+        return context.tr('salon.mobile.appointments.status.unknown', 'Bilinmiyor');
     }
   }
 
