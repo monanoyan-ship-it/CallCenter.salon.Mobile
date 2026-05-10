@@ -87,4 +87,9 @@ if ($Target -in @('apk', 'appbundle', 'ios')) {
     $cmd += '--release'
 }
 
+# Web build: CanvasKit'i local serve et (gstatic CDN bagimliligi yok). MOBQA.12.
+if ($Target -eq 'web') {
+    $cmd += '--no-web-resources-cdn'
+}
+
 & flutter @cmd

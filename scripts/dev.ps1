@@ -71,7 +71,9 @@ Write-Host "[dev] flutter run ($Mode) API_BASE_URL=$ApiUrl"
 Write-Host "[dev] Calisma dizini: $RepoRoot"
 
 if ($Mode -eq 'web') {
-    & flutter run -d chrome "--web-port=$WebPort" "--dart-define=API_BASE_URL=$ApiUrl"
+    # --no-web-resources-cdn: CanvasKit'i gstatic.com yerine local serve et.
+    # Fresh browser / sandbox / offline QA sceneryolarinda bos ekran sorunu (MOBQA.12) icin sart.
+    & flutter run -d chrome "--web-port=$WebPort" --no-web-resources-cdn "--dart-define=API_BASE_URL=$ApiUrl"
 }
 else {
     & flutter run -d android "--dart-define=API_BASE_URL=$ApiUrl"
