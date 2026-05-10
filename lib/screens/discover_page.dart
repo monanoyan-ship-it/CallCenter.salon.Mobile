@@ -4,6 +4,7 @@ import 'package:callcenter_salon_mobil/models/platform_models.dart';
 import 'package:callcenter_salon_mobil/screens/login_page.dart';
 import 'package:callcenter_salon_mobil/screens/salon_profile_page.dart';
 import 'package:callcenter_salon_mobil/services/corp_api.dart';
+import 'package:callcenter_salon_mobil/state/app_localization_state.dart';
 import 'package:callcenter_salon_mobil/state/session_state.dart';
 import 'package:callcenter_salon_mobil/util/api_errors.dart';
 import 'package:callcenter_salon_mobil/util/haversine.dart';
@@ -87,7 +88,12 @@ class _DiscoverPageState extends State<DiscoverPage> {
     final slug = _slugCtl.text.trim();
     if (slug.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Salon kısa adresini girin veya listeden / haritadan seçin.')),
+        SnackBar(
+          content: Text(context.tr(
+            'salon.mobile.discover.slugRequired',
+            'Salon kısa adresini girin veya listeden / haritadan seçin.',
+          )),
+        ),
       );
       return;
     }
@@ -103,7 +109,12 @@ class _DiscoverPageState extends State<DiscoverPage> {
       if (perm == LocationPermission.denied || perm == LocationPermission.deniedForever) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Konum izni gerekli. Ayarlardan izin verebilirsiniz.')),
+            SnackBar(
+              content: Text(context.tr(
+                'salon.mobile.discover.locationPermissionRequired',
+                'Konum izni gerekli. Ayarlardan izin verebilirsiniz.',
+              )),
+            ),
           );
         }
         return;
@@ -121,7 +132,12 @@ class _DiscoverPageState extends State<DiscoverPage> {
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Konum alınamadı. GPS açık mı kontrol edin.')),
+          SnackBar(
+            content: Text(context.tr(
+              'salon.mobile.discover.locationUnavailable',
+              'Konum alınamadı. GPS açık mı kontrol edin.',
+            )),
+          ),
         );
       }
     }
@@ -209,7 +225,7 @@ class _DiscoverPageState extends State<DiscoverPage> {
                           }
                         },
                   icon: const Icon(Icons.storefront_outlined),
-                  label: const Text('Salonu aç'),
+                  label: Text(context.tr('salon.mobile.discover.openSalon', 'Salonu aç')),
                 ),
               ],
             ),
@@ -300,10 +316,16 @@ class _DiscoverPageState extends State<DiscoverPage> {
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Konum'),
-        content: const Text('Konumunuzu buraya taşımak ister misiniz?'),
+        title: Text(context.tr('salon.mobile.discover.locationTitle', 'Konum')),
+        content: Text(context.tr(
+          'salon.mobile.discover.moveLocationConfirm',
+          'Konumunuzu buraya taşımak ister misiniz?',
+        )),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Hayır')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(context.tr('salon.mobile.common.no', 'Hayır')),
+          ),
           FilledButton(
             onPressed: () {
               Navigator.pop(ctx);
@@ -314,7 +336,10 @@ class _DiscoverPageState extends State<DiscoverPage> {
               });
               _mapController.move(ll, 13);
             },
-            child: const Text('Evet, buraya taşı'),
+            child: Text(context.tr(
+              'salon.mobile.discover.moveHere',
+              'Evet, buraya taşı',
+            )),
           ),
         ],
       ),
@@ -419,7 +444,12 @@ class _DiscoverPageState extends State<DiscoverPage> {
   Future<void> _openSalon(PublishedBranchItem b) async {
     if (b.slug.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Bu şube için kısa adres (slug) tanımlı değil.')),
+        SnackBar(
+          content: Text(context.tr(
+            'salon.mobile.discover.slugMissing',
+            'Bu şube için kısa adres (slug) tanımlı değil.',
+          )),
+        ),
       );
       return;
     }
@@ -486,14 +516,17 @@ class _DiscoverPageState extends State<DiscoverPage> {
                                   ),
                                   const SizedBox(height: 3),
                                   Text(
-                                    'Harita ile yakınınızdaki salonlar · liste ve slug ile randevu',
+                                    context.tr(
+                                      'salon.mobile.discover.subtitle',
+                                      'Harita ile yakınınızdaki salonlar · liste ve slug ile randevu',
+                                    ),
                                     style: TextStyle(fontSize: 12, color: headerMuted.withValues(alpha: 0.95)),
                                   ),
                                 ],
                               ),
                             ),
                             IconButton(
-                              tooltip: 'Yenile',
+                              tooltip: context.tr('salon.mobile.common.refresh', 'Yenile'),
                               onPressed: _salonsLoading ? null : _reloadAll,
                               icon: _salonsLoading
                                   ? const SizedBox(
@@ -520,7 +553,9 @@ class _DiscoverPageState extends State<DiscoverPage> {
                               color: session.isLoggedIn ? headerMuted : Colors.white70,
                             ),
                             label: Text(
-                              session.isLoggedIn ? 'Oturum açık' : 'Giriş yap',
+                              session.isLoggedIn
+                                  ? context.tr('salon.mobile.discover.sessionOpen', 'Oturum açık')
+                                  : context.tr('salon.mobile.auth.login.button', 'Giriş yap'),
                               style: TextStyle(
                                 color: session.isLoggedIn ? headerMuted : Colors.white,
                                 fontWeight: FontWeight.w500,
@@ -592,7 +627,7 @@ class _DiscoverPageState extends State<DiscoverPage> {
                         color: Theme.of(context).colorScheme.surface,
                         clipBehavior: Clip.antiAlias,
                         child: IconButton(
-                          tooltip: 'Konumuma git',
+                          tooltip: context.tr('salon.mobile.discover.goToMyLocation', 'Konumuma git'),
                           onPressed: _recenterOnDeviceLocation,
                           icon: Icon(Icons.my_location, color: Theme.of(context).colorScheme.primary),
                         ),
@@ -613,7 +648,7 @@ class _DiscoverPageState extends State<DiscoverPage> {
                         const Icon(Icons.storefront_outlined, size: 20),
                         const SizedBox(width: 8),
                         Text(
-                          'Salonlar',
+                          context.tr('salon.mobile.discover.salonsTitle', 'Salonlar'),
                           style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
                         ),
                         const SizedBox(width: 8),
@@ -628,9 +663,12 @@ class _DiscoverPageState extends State<DiscoverPage> {
                     const SizedBox(height: 10),
                     TextField(
                       controller: _search,
-                      decoration: const InputDecoration(
-                        hintText: 'Salon veya şehir ara…',
-                        prefixIcon: Icon(Icons.search),
+                      decoration: InputDecoration(
+                        hintText: context.tr(
+                          'salon.mobile.discover.searchHint',
+                          'Salon veya şehir ara…',
+                        ),
+                        prefixIcon: const Icon(Icons.search),
                         isDense: true,
                       ),
                       textInputAction: TextInputAction.search,
@@ -649,10 +687,19 @@ class _DiscoverPageState extends State<DiscoverPage> {
                       const SizedBox(height: 14),
                       Text(
                         _salonsLoading && _locationPending
-                            ? 'Salonlar ve konum yükleniyor…'
+                            ? context.tr(
+                                'salon.mobile.discover.loadingSalonsAndLocation',
+                                'Salonlar ve konum yükleniyor…',
+                              )
                             : _locationPending
-                                ? 'Konumunuz belirleniyor…'
-                                : 'Salonlar yükleniyor…',
+                                ? context.tr(
+                                    'salon.mobile.discover.loadingLocation',
+                                    'Konumunuz belirleniyor…',
+                                  )
+                                : context.tr(
+                                    'salon.mobile.discover.loadingSalons',
+                                    'Salonlar yükleniyor…',
+                                  ),
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -667,7 +714,10 @@ class _DiscoverPageState extends State<DiscoverPage> {
                 child: Padding(
                   padding: const EdgeInsets.only(bottom: 8),
                   child: Text(
-                    'Konumunuza göre ${_maxRadiusKm.toStringAsFixed(0)} km içindeki şubeler öncelikli (web Discover ile aynı).',
+                    context.tr(
+                      'salon.mobile.discover.nearbyHint',
+                      'Konumunuza göre {km} km içindeki şubeler öncelikli.',
+                    ).replaceFirst('{km}', _maxRadiusKm.toStringAsFixed(0)),
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -687,7 +737,7 @@ class _DiscoverPageState extends State<DiscoverPage> {
                 child: Padding(
                   padding: const EdgeInsets.all(24),
                   child: Text(
-                    'Salon bulunamadı.',
+                    context.tr('salon.mobile.discover.empty', 'Salon bulunamadı.'),
                     textAlign: TextAlign.center,
                     style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
                   ),
@@ -698,7 +748,10 @@ class _DiscoverPageState extends State<DiscoverPage> {
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Text(
-                    'Aramanızla eşleşen şube yok veya yakınınızda kayıt yok.',
+                    context.tr(
+                      'salon.mobile.discover.noMatches',
+                      'Aramanızla eşleşen şube yok veya yakınınızda kayıt yok.',
+                    ),
                     style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
                   ),
                 ),
@@ -737,15 +790,20 @@ class _DiscoverPageState extends State<DiscoverPage> {
                               Icon(Icons.link, color: Theme.of(context).colorScheme.primary, size: 22),
                               const SizedBox(width: 10),
                               Text(
-                                'Link bilgisinden randevu',
+                                context.tr(
+                                  'salon.mobile.discover.slugRailTitle',
+                                  'Link bilgisinden randevu',
+                                ),
                                 style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
                               ),
                             ],
                           ),
                           const SizedBox(height: 10),
                           Text(
-                            'Paylaşılan bağlantıdaki kısa adresi yazın (ör. …/salon/benim-sube için benim-sube). '
-                            'Haritadan seçmek istemezseniz buradan da randevuya gidebilirsiniz.',
+                            context.tr(
+                              'salon.mobile.discover.slugRailDescription',
+                              'Paylaşılan bağlantıdaki kısa adresi yazın. Haritadan seçmek istemezseniz buradan da randevuya gidebilirsiniz.',
+                            ),
                             style: TextStyle(
                               fontSize: 13,
                               height: 1.35,
@@ -753,11 +811,14 @@ class _DiscoverPageState extends State<DiscoverPage> {
                             ),
                           ),
                           const SizedBox(height: 12),
-                          const Padding(
-                            padding: EdgeInsets.only(bottom: 8),
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
                             child: Text(
-                              AppAudience.notSalonStaffNotice,
-                              style: TextStyle(fontSize: 12, height: 1.35),
+                              context.tr(
+                                'salon.mobile.account.notStaffNotice',
+                                AppAudience.notSalonStaffNotice,
+                              ),
+                              style: const TextStyle(fontSize: 12, height: 1.35),
                             ),
                           ),
                           TextField(
@@ -765,10 +826,16 @@ class _DiscoverPageState extends State<DiscoverPage> {
                             textInputAction: TextInputAction.go,
                             autocorrect: false,
                             onSubmitted: (_) => _openSalonFromSlugInput(),
-                            decoration: const InputDecoration(
-                              labelText: 'Salon kısa adresi (slug)',
-                              hintText: 'ornek-sube',
-                              border: OutlineInputBorder(),
+                            decoration: InputDecoration(
+                              labelText: context.tr(
+                                'salon.mobile.discover.slugLabel',
+                                'Salon kısa adresi (slug)',
+                              ),
+                              hintText: context.tr(
+                                'salon.mobile.discover.slugHint',
+                                'ornek-sube',
+                              ),
+                              border: const OutlineInputBorder(),
                               isDense: true,
                             ),
                           ),
@@ -782,7 +849,9 @@ class _DiscoverPageState extends State<DiscoverPage> {
                                     child: CircularProgressIndicator(strokeWidth: 2),
                                   )
                                 : const Icon(Icons.storefront_outlined),
-                            label: Text(_slugBookingBusy ? 'Kontrol…' : 'Salonu aç'),
+                            label: Text(_slugBookingBusy
+                                ? context.tr('salon.mobile.discover.checking', 'Kontrol…')
+                                : context.tr('salon.mobile.discover.openSalon', 'Salonu aç')),
                           ),
                         ],
                       ),
@@ -822,7 +891,12 @@ class _BranchDiscoverCard extends StatelessWidget {
       if ((item.city ?? '').isNotEmpty) item.city,
     ].join(', ');
     final desc = (item.description ?? '').trim();
-    final descText = desc.isEmpty ? 'Açıklama henüz eklenmemiş.' : desc;
+    final descText = desc.isEmpty
+        ? context.tr(
+            'salon.mobile.discover.descriptionEmpty',
+            'Açıklama henüz eklenmemiş.',
+          )
+        : desc;
 
     return Card(
       clipBehavior: Clip.antiAlias,
@@ -889,7 +963,7 @@ class _BranchDiscoverCard extends StatelessWidget {
                           Padding(
                             padding: const EdgeInsets.only(left: 6),
                             child: Text(
-                              'Merkez',
+                              context.tr('salon.mobile.discover.headquarter', 'Merkez'),
                               style: TextStyle(fontSize: 11, color: scheme.onSurfaceVariant),
                             ),
                           ),
@@ -905,7 +979,10 @@ class _BranchDiscoverCard extends StatelessWidget {
                             style: const TextStyle(fontSize: 13, color: Color(0xFFF59E0B)),
                           ),
                           Text(
-                            '(${item.reviewCount} yorum)',
+                             context.tr(
+                              'salon.mobile.discover.reviewCount',
+                              '({count} yorum)',
+                            ).replaceFirst('{count}', item.reviewCount.toString()),
                             style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 12),
                           ),
                         ],
@@ -925,7 +1002,12 @@ class _BranchDiscoverCard extends StatelessWidget {
                         const SizedBox(width: 4),
                         Expanded(
                           child: Text(
-                            loc.isEmpty ? 'Konum belirtilmemiş' : loc,
+                             loc.isEmpty
+                                ? context.tr(
+                                    'salon.mobile.discover.locationMissing',
+                                    'Konum belirtilmemiş',
+                                  )
+                                : loc,
                             style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
                           ),
                         ),
