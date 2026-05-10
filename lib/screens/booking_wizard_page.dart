@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
-/// Web'deki Book.cshtml akisina paralel: hizmet, personel, tarih/saat, iletisim, onay.
+/// Web'deki Book.cshtml akışına paralel: hizmet, personel, tarih/saat, iletişim, onay.
 class BookingWizardPage extends StatefulWidget {
   const BookingWizardPage({super.key, required this.slug});
 

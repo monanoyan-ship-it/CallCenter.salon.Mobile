@@ -72,10 +72,13 @@ class AppConfig {
   );
 
   /// Sentry trace örnekleme oranı (0.0–1.0). Performans monitoring için.
-  static const double sentryTracesSampleRate = double.fromEnvironment(
+  /// Dart `double.fromEnvironment` desteklemediğinden string olarak verilir.
+  static const String _sentryTracesSampleRateStr = String.fromEnvironment(
     'SENTRY_TRACES_SAMPLE_RATE',
-    defaultValue: 0.1,
+    defaultValue: '0.1',
   );
+  static double get sentryTracesSampleRate =>
+      double.tryParse(_sentryTracesSampleRateStr) ?? 0.1;
 
   /// Sentry environment etiketi: dev / staging / prod.
   static const String sentryEnvironment = String.fromEnvironment(

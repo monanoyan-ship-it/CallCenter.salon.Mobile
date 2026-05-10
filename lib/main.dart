@@ -7,6 +7,7 @@ import 'package:callcenter_salon_mobil/state/session_state.dart';
 import 'package:callcenter_salon_mobil/theme/app_theme.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -21,6 +22,16 @@ Future<void> main() async {
     initializeDateFormatting('tr'),
     initializeDateFormatting('tr_TR'),
   ]);
+
+  if (kDebugMode &&
+      AppConfig.mapTileUrl.contains('tile.openstreetmap.org')) {
+    debugPrint(
+      '[map] Varsayılan OSM tile sunucusu kullanılıyor — '
+      'mağaza yayınında YASAK. Prod için --dart-define=MAP_TILE_URL=... '
+      '(Mapbox/MapTiler/Stadia/Carto) ile override edin. '
+      'docs/PRODUCTION.md §1.',
+    );
+  }
 
   if (AppConfig.sentryDsn.isEmpty) {
     runApp(const SalonBookingApp());
@@ -62,6 +73,14 @@ class SalonBookingApp extends StatelessWidget {
         theme: AppTheme.light(),
         darkTheme: AppTheme.dark(),
         themeMode: ThemeMode.system,
+        // Türkçe DatePicker / TimePicker / Material varsayılanları için.
+        locale: const Locale('tr', 'TR'),
+        supportedLocales: const [Locale('tr', 'TR'), Locale('en', 'US')],
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
         home: const _BootstrapShell(),
       ),
     );

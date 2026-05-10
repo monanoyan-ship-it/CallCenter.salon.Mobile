@@ -258,23 +258,58 @@ class _LoyaltyTabState extends State<_LoyaltyTab> {
   }
 
   void _reload() {
-    setState(() => _future = context.read<CorpApiClient>().fetchPlatformLoyalty());
+    setState(() {
+      _future = context
+          .read<CorpApiClient>()
+          .fetchPlatformLoyalty()
+          .timeout(const Duration(seconds: 20));
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return RefreshIndicator(
       onRefresh: () async => _reload(),
       child: FutureBuilder<List<PlatformLoyaltyEntry>>(
         future: _future,
         builder: (context, snap) {
           if (snap.connectionState != ConnectionState.done) {
-            return ListView(children: [const SizedBox(height: 120), Center(child: CircularProgressIndicator())]);
+            return ListView(
+              children: [
+                const SizedBox(height: 120),
+                const Center(child: CircularProgressIndicator()),
+                const SizedBox(height: 12),
+                Center(
+                  child: Text(
+                    'Sadakat bilgileri yükleniyor…',
+                    style: TextStyle(
+                        fontSize: 12, color: scheme.onSurfaceVariant),
+                  ),
+                ),
+              ],
+            );
           }
           if (snap.hasError) {
             return ListView(
               physics: const AlwaysScrollableScrollPhysics(),
-              children: [Padding(padding: const EdgeInsets.all(24), child: Text(dioErrorMessage(snap.error!)))],
+              padding: const EdgeInsets.all(24),
+              children: [
+                Icon(Icons.cloud_off, size: 48, color: scheme.error),
+                const SizedBox(height: 12),
+                Text(
+                  dioErrorMessage(snap.error!),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                Center(
+                  child: FilledButton.icon(
+                    onPressed: _reload,
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Tekrar dene'),
+                  ),
+                ),
+              ],
             );
           }
           final rows = snap.data ?? [];

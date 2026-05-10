@@ -308,20 +308,30 @@ class _SalonProfilePageState extends State<SalonProfilePage> {
       body: RefreshIndicator(
         onRefresh: _bootstrap,
         child: ResponsiveCenter(
-          child: ListView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: EdgeInsets.zero,
-            children: [
-              _HeroSection(
-                profile: p,
-                reviewStats: _reviews?.stats,
-              ),
-              ..._buildOrderedSections(p),
-              if (p.showHours) _HoursSection(hours: _hours),
-              if (p.showContact) _ContactSection(profile: p, onLaunch: _launch),
-              const SizedBox(height: 24),
-            ],
-          ),
+          child: Builder(builder: (context) {
+            final orderedSections = _buildOrderedSections(p);
+            final hasAnyContent = orderedSections.isNotEmpty ||
+                (p.showHours && _hours.any((h) => !h.isClosed)) ||
+                (p.showContact &&
+                    ((p.phone ?? '').isNotEmpty ||
+                        (p.email ?? '').isNotEmpty ||
+                        (p.address ?? '').isNotEmpty));
+            return ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: EdgeInsets.zero,
+              children: [
+                _HeroSection(
+                  profile: p,
+                  reviewStats: _reviews?.stats,
+                ),
+                if (!hasAnyContent) _EmptyProfileNotice(profile: p),
+                ...orderedSections,
+                if (p.showHours) _HoursSection(hours: _hours),
+                if (p.showContact) _ContactSection(profile: p, onLaunch: _launch),
+                const SizedBox(height: 24),
+              ],
+            );
+          }),
         ),
       ),
       bottomNavigationBar: p.showBooking
@@ -594,6 +604,49 @@ class _HeroSection extends StatelessWidget {
               ),
             ),
         ],
+      ),
+    );
+  }
+}
+
+class _EmptyProfileNotice extends StatelessWidget {
+  const _EmptyProfileNotice({required this.profile});
+  final SalonProfile profile;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      child: Card(
+        clipBehavior: Clip.antiAlias,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.info_outline, size: 18, color: scheme.primary),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Profil bilgileri henüz tamamlanmadı',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Bu salon henüz hizmetlerini, ekibini veya çalışma saatlerini eklememiş. '
+                '${profile.showBooking ? "Yine de aşağıdaki Randevu Al butonu ile randevu talebi gönderebilirsiniz." : "Salon randevu kabul etmiyor olabilir; iletişim bilgisi varsa doğrudan arayabilirsiniz."}',
+                style: TextStyle(
+                    fontSize: 13, color: scheme.onSurfaceVariant, height: 1.4),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

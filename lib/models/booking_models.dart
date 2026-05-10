@@ -152,7 +152,7 @@ class ServiceCategory {
   factory ServiceCategory.fromJson(Map<String, dynamic> json) {
     final raw = json['services'] as List<dynamic>? ?? [];
     return ServiceCategory(
-      id: json['id'] as int,
+      id: (json['id'] as num?)?.toInt() ?? 0,
       name: json['name'] as String? ?? '',
       iconClass: json['iconClass'] as String?,
       services: raw.map((e) => SalonService.fromJson(e as Map<String, dynamic>)).toList(),
@@ -175,9 +175,9 @@ class SalonService {
 
   factory SalonService.fromJson(Map<String, dynamic> json) {
     return SalonService(
-      id: json['id'] as int,
+      id: (json['id'] as num?)?.toInt() ?? 0,
       name: json['name'] as String? ?? '',
-      durationMinutes: json['durationMinutes'] as int? ?? 0,
+      durationMinutes: (json['durationMinutes'] as num?)?.toInt() ?? 0,
       price: _toDouble(json['price']),
     );
   }
@@ -206,7 +206,7 @@ class StaffMember {
 
   factory StaffMember.fromJson(Map<String, dynamic> json) {
     return StaffMember(
-      id: json['id'] as int,
+      id: (json['id'] as num?)?.toInt() ?? 0,
       name: json['name'] as String? ?? '',
       title: json['title'] as String?,
       photoUrl: json['photoUrl'] as String?,
@@ -225,7 +225,7 @@ class SlotStaffMini {
 
   factory SlotStaffMini.fromJson(Map<String, dynamic> json) {
     return SlotStaffMini(
-      id: json['id'] as int,
+      id: (json['id'] as num?)?.toInt() ?? 0,
       name: json['name'] as String? ?? '',
       photoUrl: json['photoUrl'] as String?,
       initials: json['initials'] as String?,
@@ -401,7 +401,7 @@ class PlatformAppointment {
     }
 
     return PlatformAppointment(
-      id: json['id'] as int,
+      id: (json['id'] as num?)?.toInt() ?? 0,
       salonName: json['salonName'] as String? ?? '',
       salonLogoUrl: json['salonLogoUrl'] as String?,
       appointmentDate: date,
@@ -409,7 +409,7 @@ class PlatformAppointment {
       endLabel: json['endTime']?.toString() ?? '',
       serviceNames: svc.map((e) => e.toString()).toList(),
       totalPrice: SalonService.fromJson({'price': json['totalPrice']}).price,
-      statusId: json['statusId'] as int? ?? 0,
+      statusId: (json['statusId'] as num?)?.toInt() ?? 0,
       personnelName: json['personnelName'] as String?,
       isPrepaid: json['isPrepaid'] as bool? ?? false,
       prepaidAmount: SalonService.fromJson({'price': json['prepaidAmount']}).price,
@@ -574,13 +574,13 @@ class SalonMembership {
   factory SalonMembership.fromJson(Map<String, dynamic> json) {
     final raw = json['serviceDetails'] as List<dynamic>? ?? [];
     return SalonMembership(
-      id: json['id'] as int,
+      id: (json['id'] as num?)?.toInt() ?? 0,
       name: json['name'] as String? ?? '',
       description: json['description'] as String?,
       iconClass: json['iconClass'] as String?,
       color: json['color'] as String?,
-      durationType: json['durationType'] as int? ?? 0,
-      durationDays: json['durationDays'] as int? ?? 0,
+      durationType: (json['durationType'] as num?)?.toInt() ?? 0,
+      durationDays: (json['durationDays'] as num?)?.toInt() ?? 0,
       price: _toMoney(json['price']),
       monthlyPrice: _toMoney(json['monthlyPrice']),
       currency: json['currency'] as String? ?? 'TRY',

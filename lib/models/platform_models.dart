@@ -140,8 +140,8 @@ class PlatformJoinedSalon {
   factory PlatformJoinedSalon.fromJson(Map<String, dynamic> json) {
     final ja = json['joinedAt'];
     return PlatformJoinedSalon(
-      id: json['id'] as int,
-      customerId: json['customerId'] as int,
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      customerId: (json['customerId'] as num?)?.toInt() ?? 0,
       salonName: json['salonName'] as String? ?? '',
       logoUrl: json['logoUrl'] as String?,
       city: json['city'] as String?,
@@ -174,7 +174,7 @@ class DiscoverSalonItem {
 
   factory DiscoverSalonItem.fromJson(Map<String, dynamic> json) {
     return DiscoverSalonItem(
-      customerId: json['customerId'] as int,
+      customerId: (json['customerId'] as num?)?.toInt() ?? 0,
       name: json['name'] as String? ?? '',
       slug: json['slug'] as String? ?? '',
       logoUrl: json['logoUrl'] as String?,

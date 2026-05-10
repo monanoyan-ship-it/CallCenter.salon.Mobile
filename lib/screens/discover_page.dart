@@ -328,7 +328,7 @@ class _DiscoverPageState extends State<DiscoverPage> {
   List<_EnrichedBranch> _filteredList() {
     if (_locationPending) return [];
 
-    final q = _search.text.trim().toLowerCase();
+    final q = normalizeForSearch(_search.text.trim());
     final uLat = _userLat;
     final uLng = _userLng;
 
@@ -343,10 +343,10 @@ class _DiscoverPageState extends State<DiscoverPage> {
     if (q.isNotEmpty) {
       enriched = enriched.where((e) {
         final s = e.item;
-        final name = (s.branchName).toLowerCase();
-        final salon = s.salonName.toLowerCase();
-        final city = (s.city ?? '').toLowerCase();
-        final dist = (s.district ?? '').toLowerCase();
+        final name = normalizeForSearch(s.branchName);
+        final salon = normalizeForSearch(s.salonName);
+        final city = normalizeForSearch(s.city ?? '');
+        final dist = normalizeForSearch(s.district ?? '');
         return name.contains(q) || salon.contains(q) || city.contains(q) || dist.contains(q);
       }).toList();
     } else if (uLat != null) {

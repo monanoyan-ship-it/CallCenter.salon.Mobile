@@ -16,3 +16,21 @@ String distanceLabelKm(double? km) {
   if (km < 1) return '${(km * 1000).round()} m';
   return '${km.toStringAsFixed(1)} km';
 }
+
+/// Türkçe karakter + büyük/küçük harf duyarlılığını eleyen arama normalize.
+/// `Şişli` ve `sisli` aynı şekilde eşleşsin diye `_filteredList` gibi yerlerde kullan.
+String normalizeForSearch(String input) {
+  const map = {
+    'ç': 'c', 'Ç': 'c',
+    'ğ': 'g', 'Ğ': 'g',
+    'ı': 'i', 'I': 'i', 'İ': 'i', 'i': 'i',
+    'ö': 'o', 'Ö': 'o',
+    'ş': 's', 'Ş': 's',
+    'ü': 'u', 'Ü': 'u',
+  };
+  final buf = StringBuffer();
+  for (final ch in input.toLowerCase().split('')) {
+    buf.write(map[ch] ?? ch);
+  }
+  return buf.toString();
+}

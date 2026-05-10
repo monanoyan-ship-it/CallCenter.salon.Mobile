@@ -22,5 +22,5 @@ build/
 .env
 *.local.dart
 
-# Tooling — local AI assistant settings (per-machine)
-.claude/settings.local.json
+# Tooling — local AI assistant artifacts (per-machine, never commit)
+.claude/
