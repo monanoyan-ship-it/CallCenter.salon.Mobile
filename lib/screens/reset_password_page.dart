@@ -1,12 +1,11 @@
 import 'package:callcenter_salon_mobil/services/corp_api.dart';
+import 'package:callcenter_salon_mobil/state/app_localization_state.dart';
 import 'package:callcenter_salon_mobil/util/api_errors.dart';
 import 'package:callcenter_salon_mobil/widgets/responsive_center.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 /// `/api/platform/reset-password` — emaildeki linkin token'ıyla yeni şifre belirle.
-/// Token deep link'ten otomatik gelir; manuel paste de mümkün (mail metnindeki
-/// token'ı kopyalayan kullanıcı için).
 class ResetPasswordPage extends StatefulWidget {
   const ResetPasswordPage({super.key, this.token});
 
@@ -42,7 +41,10 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
   Future<void> _submit() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
     if (_new.text != _new2.text) {
-      setState(() => _error = 'Şifreler eşleşmiyor.');
+      setState(() => _error = context.trRead(
+            'salon.mobile.auth.reset.passwordMismatch',
+            'Şifreler eşleşmiyor.',
+          ));
       return;
     }
     setState(() {
@@ -66,74 +68,115 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return Scaffold(
-      appBar: AppBar(title: const Text('Yeni şifre belirle')),
+      appBar: AppBar(
+        title: Text(context.tr(
+          'salon.mobile.auth.reset.title',
+          'Yeni şifre belirle',
+        )),
+      ),
       body: ResponsiveCenter(
         child: ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          if (_done) ...[
-            Icon(Icons.lock_reset, size: 56, color: scheme.primary),
-            const SizedBox(height: 16),
-            const Text(
-              'Şifreniz başarıyla güncellendi. Yeni şifrenizle giriş yapabilirsiniz.',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 15, height: 1.4),
-            ),
-            const SizedBox(height: 24),
-            FilledButton(
-              onPressed: () => Navigator.of(context).popUntil((r) => r.isFirst),
-              child: const Text('Tamam'),
-            ),
-          ] else ...[
-            Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  TextFormField(
-                    controller: _token,
-                    decoration: const InputDecoration(
-                      labelText: 'Doğrulama token',
-                      helperText: 'Email\'den gelen linke tıkladıysanız otomatik dolar.',
-                    ),
-                    validator: (v) =>
-                        (v == null || v.trim().length < 8) ? 'Geçerli bir token girin' : null,
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _new,
-                    obscureText: true,
-                    decoration: const InputDecoration(labelText: 'Yeni şifre'),
-                    validator: (v) =>
-                        (v == null || v.length < 6) ? 'En az 6 karakter' : null,
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _new2,
-                    obscureText: true,
-                    decoration: const InputDecoration(labelText: 'Yeni şifre (tekrar)'),
-                    validator: (v) =>
-                        (v == null || v.length < 6) ? 'En az 6 karakter' : null,
-                  ),
-                ],
+          padding: const EdgeInsets.all(20),
+          children: [
+            if (_done) ...[
+              Icon(Icons.lock_reset, size: 56, color: scheme.primary),
+              const SizedBox(height: 16),
+              Text(
+                context.tr(
+                  'salon.mobile.auth.reset.success',
+                  'Şifreniz başarıyla güncellendi. Yeni şifrenizle giriş yapabilirsiniz.',
+                ),
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 15, height: 1.4),
               ),
-            ),
-            if (_error != null) ...[
-              const SizedBox(height: 12),
-              Text(_error!, style: TextStyle(color: scheme.error)),
+              const SizedBox(height: 24),
+              FilledButton(
+                onPressed: () => Navigator.of(context).popUntil((r) => r.isFirst),
+                child: Text(context.tr('salon.mobile.common.ok', 'Tamam')),
+              ),
+            ] else ...[
+              Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    TextFormField(
+                      controller: _token,
+                      decoration: InputDecoration(
+                        labelText: context.tr(
+                          'salon.mobile.auth.reset.tokenLabel',
+                          'Doğrulama token',
+                        ),
+                        helperText: context.tr(
+                          'salon.mobile.auth.reset.tokenHelper',
+                          'Email\'den gelen linke tıkladıysanız otomatik dolar.',
+                        ),
+                      ),
+                      validator: (v) => (v == null || v.trim().length < 8)
+                          ? context.trRead(
+                              'salon.mobile.auth.reset.tokenInvalid',
+                              'Geçerli bir token girin',
+                            )
+                          : null,
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _new,
+                      obscureText: true,
+                      decoration: InputDecoration(
+                        labelText: context.tr(
+                          'salon.mobile.auth.reset.newPassword',
+                          'Yeni şifre',
+                        ),
+                      ),
+                      validator: (v) => (v == null || v.length < 6)
+                          ? context.trRead(
+                              'salon.mobile.auth.reset.passwordMin',
+                              'En az 6 karakter',
+                            )
+                          : null,
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _new2,
+                      obscureText: true,
+                      decoration: InputDecoration(
+                        labelText: context.tr(
+                          'salon.mobile.auth.reset.newPasswordRepeat',
+                          'Yeni şifre (tekrar)',
+                        ),
+                      ),
+                      validator: (v) => (v == null || v.length < 6)
+                          ? context.trRead(
+                              'salon.mobile.auth.reset.passwordMin',
+                              'En az 6 karakter',
+                            )
+                          : null,
+                    ),
+                  ],
+                ),
+              ),
+              if (_error != null) ...[
+                const SizedBox(height: 12),
+                Text(_error!, style: TextStyle(color: scheme.error)),
+              ],
+              const SizedBox(height: 20),
+              FilledButton(
+                onPressed: _busy ? null : _submit,
+                child: _busy
+                    ? const SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Text(context.tr(
+                        'salon.mobile.auth.reset.submit',
+                        'Şifreyi güncelle',
+                      )),
+              ),
             ],
-            const SizedBox(height: 20),
-            FilledButton(
-              onPressed: _busy ? null : _submit,
-              child: _busy
-                  ? const SizedBox(
-                      width: 22, height: 22,
-                      child: CircularProgressIndicator(strokeWidth: 2))
-                  : const Text('Şifreyi güncelle'),
-            ),
           ],
-        ],
-      ),
+        ),
       ),
     );
   }
